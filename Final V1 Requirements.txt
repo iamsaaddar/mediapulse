@@ -1,0 +1,805 @@
+## 1. Product Definition
+
+### Name
+
+**MediaPulse**
+
+### V1 Title
+
+**MediaPulse — AI-Powered Movie Personality & Recommendation Engine**
+
+### Core idea
+
+MediaPulse asks a user a short series of questions about their movie taste, uses an AI model to interpret those preferences, creates a unique **Movie Personality**, and then uses that personality to retrieve relevant movies from **TMDB**.
+
+The user ultimately receives a personalized **Movie Profile Card** containing their personality and recommendations.
+
+---
+
+# 2. User Journey
+
+The complete V1 experience should be:
+
+```text
+Landing Page
+     ↓
+"Discover Your Movie Vibe"
+     ↓
+Interactive Quiz
+     ↓
+Analyzing Your Taste...
+     ↓
+AI Movie Personality
+     ↓
+Personalized Recommendations
+     ↓
+Movie Profile / Taste Card
+     ↓
+Share / Download
+```
+
+The experience should feel like a polished product rather than a technical demonstration.
+
+---
+
+# 3. Landing Page
+
+The landing page should contain:
+
+### Hero
+
+**MediaPulse**
+
+> Discover what your movie taste says about you.
+
+Short supporting text explaining that MediaPulse analyzes movie preferences and creates a personalized movie personality.
+
+### Primary CTA
+
+**Discover Your Movie Vibe**
+
+### Secondary information
+
+A concise explanation of:
+
+* Take the quiz
+* Get your movie personality
+* Discover movies matched to your taste
+
+We should keep the landing page relatively minimal.
+
+---
+
+# 4. Interactive Movie Taste Quiz
+
+The quiz will contain approximately **6 questions**.
+
+This is one area where I recommend we deliberately avoid making the quiz too long.
+
+### Question 1 — Mood
+
+**What kind of mood usually draws you toward a movie?**
+
+Example options:
+
+* Dark & Mysterious
+* Feel-Good
+* Emotional
+* Intense
+* Nostalgic
+* Dreamy
+
+---
+
+### Question 2 — Story Type
+
+**What kind of story grabs your attention?**
+
+Example options:
+
+* Mind-bending
+* Character-driven
+* Epic adventure
+* Mystery
+* Romance
+* Psychological
+* Slice-of-life
+
+---
+
+### Question 3 — Visual Aesthetic
+
+**Which cinematic world appeals to you most?**
+
+Example options:
+
+* Neon futuristic city
+* Rainy city at night
+* Golden-hour countryside
+* Dark gothic environment
+* Retro 80s atmosphere
+* Vast sci-fi universe
+
+This question gives the AI useful aesthetic information while also making the quiz visually interesting.
+
+---
+
+### Question 4 — Pacing
+
+**How do you like your movies to unfold?**
+
+Example:
+
+```text
+Slow Burn ─────────────── Fast & Intense
+```
+
+This can be implemented as a slider.
+
+---
+
+### Question 5 — Emotional Experience
+
+**What do you want to feel after watching a movie?**
+
+Options:
+
+* Inspired
+* Thrilled
+* Moved
+* Comforted
+* Amazed
+* Disturbed
+* Thoughtful
+
+---
+
+### Question 6 — Movie Preference
+
+**Pick the movie world you'd most likely enter.**
+
+This can be a visual card selection featuring concepts such as:
+
+* Sci-Fi
+* Thriller
+* Drama
+* Comedy
+* Horror
+* Fantasy
+* Romance
+* Mystery
+
+The exact questions/options can be refined when we design the UI.
+
+---
+
+# 5. Quiz UX Requirements
+
+The quiz should have:
+
+* One question at a time
+* Progress indicator
+* Previous button
+* Next button
+* Animated transitions
+* Visual selection cards
+* Responsive mobile layout
+* Selected-state feedback
+* Validation before proceeding
+* Final **Generate My Profile** button
+
+Example:
+
+```text
+QUESTION 3 OF 6
+
+Which cinematic world appeals to you?
+
+┌────────────┐  ┌────────────┐
+│ 🌃         │  │ 🌧️         │
+│ Neon       │  │ Rainy      │
+│ Future     │  │ Night      │
+└────────────┘  └────────────┘
+
+             ● ● ● ○ ○ ○
+```
+
+---
+
+# 6. AI Personality Engine
+
+This is the centerpiece of the project.
+
+After the quiz is submitted:
+
+```text
+Quiz Answers
+     ↓
+Gemini
+     ↓
+Structured JSON
+```
+
+The AI should **not** directly return a random list of movies.
+
+Instead, it creates a structured representation of the user's movie taste.
+
+### Example output
+
+```json
+{
+  "personaTitle": "The Midnight Mind-Bender",
+  "description": "You gravitate toward atmospheric stories that challenge your perception of reality...",
+  "preferredGenres": [
+    "Science Fiction",
+    "Thriller",
+    "Mystery"
+  ],
+  "preferredThemes": [
+    "Identity",
+    "Reality",
+    "Isolation"
+  ],
+  "pacing": "Slow Burn",
+  "tone": "Dark and Atmospheric",
+  "keywords": [
+    "mind-bending",
+    "psychological",
+    "dystopian"
+  ]
+}
+```
+
+This distinction is important.
+
+**Gemini interprets the user.
+Our application controls the recommendation logic.**
+
+That is a much better architecture for a portfolio project.
+
+---
+
+# 7. Dynamic Movie Recommendation Engine
+
+Once Gemini produces the structured profile:
+
+```text
+Persona
+   ↓
+Recommendation Parameters
+   ↓
+TMDB API
+   ↓
+Movie Results
+```
+
+The application will query **TMDB**.
+
+The result should contain approximately **5 recommended movies**.
+
+Each movie should display:
+
+* Poster
+* Movie title
+* Release year
+* TMDB rating
+* Short overview
+* Genre
+* Optional movie detail link
+
+Example:
+
+```text
+┌───────────────────────────┐
+│                           │
+│       MOVIE POSTER        │
+│                           │
+├───────────────────────────┤
+│ Blade Runner 2049         │
+│ 2017  •  8.0 ⭐           │
+│                           │
+│ A young blade runner...   │
+└───────────────────────────┘
+```
+
+---
+
+# 8. Recommendation Quality
+
+We should avoid simply searching TMDB using the AI-generated title.
+
+Instead, we'll build a controlled recommendation pipeline.
+
+For example:
+
+```text
+User:
+Dark + Psychological + Slow Burn
+             ↓
+Gemini:
+Sci-Fi + Thriller
+Psychological
+Dystopian
+             ↓
+Application:
+Validate parameters
+             ↓
+TMDB:
+Discover movies
+             ↓
+Application:
+Filter / rank results
+             ↓
+Top 5 movies
+```
+
+This gives us room later to improve the recommendation algorithm without changing the AI system.
+
+---
+
+# 9. Movie Personality Result
+
+The result page should prominently display:
+
+### Personality title
+
+Something memorable such as:
+
+> **The Midnight Mind-Bender**
+
+### Personality description
+
+Approximately 2–3 sentences explaining the user's movie taste.
+
+### Personality attributes
+
+For example:
+
+```text
+MOOD
+Dark
+
+PACING
+Slow Burn
+
+STYLE
+Atmospheric
+
+STORY
+Mind-Bending
+```
+
+This gives the result more substance than simply displaying an AI-generated paragraph.
+
+---
+
+# 10. Shareable Profile Card
+
+This will be one of the project's strongest portfolio features.
+
+The user gets a visual card containing:
+
+```text
+╭────────────────────────────────╮
+│          MEDIAPULSE             │
+│                                 │
+│    THE MIDNIGHT MIND-BENDER     │
+│                                 │
+│  You seek atmospheric stories   │
+│  that challenge reality...      │
+│                                 │
+│  DARK • SLOW BURN • SCI-FI      │
+│                                 │
+│  YOUR MOVIE PICKS               │
+│                                 │
+│  [Poster] [Poster] [Poster]     │
+│                                 │
+│       mediapulse                │
+╰────────────────────────────────╯
+```
+
+The card should support:
+
+* Download as image
+* Native share where supported
+* Copy/share result link if we implement URL-based sharing
+* Retake quiz
+
+We should use a free/open-source client-side solution rather than paying for an image-generation service.
+
+---
+
+# 11. Retake Quiz
+
+The result page should contain:
+
+**Take the Quiz Again**
+
+This should reset the quiz state and allow the user to generate another personality.
+
+No account should be necessary for V1.
+
+---
+
+# 12. No Login System in V1
+
+I strongly recommend **no authentication**.
+
+That means:
+
+❌ Google login
+❌ GitHub login
+❌ Email/password
+❌ Auth database
+
+For this product, authentication doesn't provide meaningful value yet.
+
+Removing it means:
+
+* Less code
+* Fewer security concerns
+* No authentication provider
+* No database
+* Faster development
+* Better alignment with our $0 requirement
+
+---
+
+# 13. No Database in V1
+
+Likewise, **we don't need a database initially**.
+
+The user's session can exist entirely in the browser.
+
+```text
+Browser
+  │
+  ├── Quiz answers
+  ├── Generated personality
+  └── Recommendations
+```
+
+If we eventually decide that persistent profiles are valuable, that becomes a V2 consideration.
+
+---
+
+# 14. Technology Stack
+
+For V1, I'd lock the stack to:
+
+### Frontend
+
+**Next.js**
+
+with:
+
+* React
+* TypeScript
+* Tailwind CSS
+* Motion/Framer Motion
+
+### Backend
+
+**Next.js API Routes / Route Handlers**
+
+This avoids maintaining a separate Express server.
+
+### AI
+
+**Google Gemini API**
+
+Used exclusively through the server-side API layer.
+
+### Movie Data
+
+**TMDB API**
+
+### Deployment
+
+**Vercel**
+
+### Version Control
+
+**GitHub**
+
+### Image generation
+
+Client-side/open-source approach for the profile card.
+
+---
+
+# 15. Security Requirements
+
+This is non-negotiable.
+
+API keys must **never** appear in:
+
+* React client code
+* GitHub repository
+* public JavaScript
+* `.env.example`
+
+We'll use:
+
+```text
+.env.local
+```
+
+for development.
+
+Example:
+
+```text
+GEMINI_API_KEY=...
+TMDB_API_KEY=...
+```
+
+And:
+
+```text
+.env.local
+```
+
+will be included in `.gitignore`.
+
+We'll commit:
+
+```text
+.env.example
+```
+
+containing only placeholders:
+
+```text
+GEMINI_API_KEY=
+TMDB_API_KEY=
+```
+
+---
+
+# 16. Cost Requirement — $0
+
+This is now an explicit V1 requirement.
+
+### We will prioritize
+
+* Open-source libraries
+* Free developer tiers
+* Free hosting
+* Client-side processing where practical
+* No paid SaaS
+* No unnecessary infrastructure
+
+### We will NOT assume
+
+> "It's free because someone said it has a free tier."
+
+When we reach an external service, we'll verify its current free-tier terms before making it part of the architecture.
+
+If something becomes paid or restricted, we'll look for a replacement or redesign that portion.
+
+---
+
+# 17. Error Handling
+
+The application should gracefully handle:
+
+### Gemini failure
+
+```text
+We couldn't analyze your vibe right now.
+Please try again.
+```
+
+### TMDB failure
+
+```text
+We created your movie personality,
+but couldn't retrieve recommendations.
+Please try again.
+```
+
+### Invalid AI response
+
+The server validates Gemini's JSON before using it.
+
+### API rate limits
+
+The UI should provide a friendly retry mechanism rather than exposing raw API errors.
+
+### Missing images
+
+Use a proper fallback poster rather than broken image elements.
+
+---
+
+# 18. Loading Experience
+
+We shouldn't display a generic:
+
+> Loading...
+
+Instead, the AI analysis stage can become part of the product experience:
+
+```text
+Analyzing your movie taste...
+
+◉ Understanding your mood
+◉ Mapping your cinematic preferences
+◉ Building your personality
+○ Finding movies for your vibe
+```
+
+This makes waiting feel intentional.
+
+---
+
+# 19. Responsive Design
+
+V1 must work properly on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+The mobile experience is particularly important because the quiz and shareable card should feel natural on a phone.
+
+---
+
+# 20. Accessibility
+
+We'll include basic professional standards:
+
+* Keyboard navigation
+* Proper button elements
+* Accessible labels
+* Sufficient text contrast
+* Focus states
+* Semantic HTML
+* Reduced-motion consideration
+* Alt text for movie posters
+
+This is an easy way to make the project feel more mature.
+
+---
+
+# 21. GitHub Requirements
+
+Since the primary objective is also to showcase this project on your GitHub profile, the repository itself matters.
+
+We'll have:
+
+```text
+mediapulse/
+│
+├── app/
+├── components/
+├── lib/
+├── types/
+├── public/
+│
+├── .env.example
+├── .gitignore
+├── README.md
+├── package.json
+├── tsconfig.json
+└── ...
+```
+
+And the README should eventually contain:
+
+* Project overview
+* Features
+* Screenshots
+* Tech stack
+* Architecture
+* How AI works
+* API integrations
+* Environment setup
+* Local development instructions
+* Deployment instructions
+* Project structure
+* Future roadmap
+* License
+
+The README should make it immediately obvious to a recruiter or developer **what you built and why the architecture is structured this way**.
+
+---
+
+# 22. V1 Explicitly Out of Scope
+
+To prevent scope creep, these are **not part of V1**:
+
+| Feature                         | V1 |
+| ------------------------------- | -- |
+| Music recommendations           | ❌  |
+| Spotify                         | ❌  |
+| User accounts                   | ❌  |
+| Login                           | ❌  |
+| Database                        | ❌  |
+| Watchlists                      | ❌  |
+| Social feed                     | ❌  |
+| User comments                   | ❌  |
+| Paid APIs                       | ❌  |
+| Mobile application              | ❌  |
+| Admin dashboard                 | ❌  |
+| Complex recommendation ML model | ❌  |
+
+These can go into a future roadmap.
+
+---
+
+# 23. Possible V2 Roadmap
+
+Once V1 is stable, we could consider:
+
+```text
+V1
+Movie Personality + Recommendations
+       ↓
+V2
+User Accounts + Watchlist
+       ↓
+V3
+Music Personality + Spotify
+       ↓
+V4
+Combined Media Personality
+       ↓
+V5
+Social Sharing / Profiles
+```
+
+But **we do not build any of this until V1 is finished.**
+
+---
+
+# 24. Final V1 Definition
+
+If I had to summarize the entire project in one sentence:
+
+> **MediaPulse is a free-to-use web application that analyzes a user's movie preferences through an interactive quiz, uses Gemini to create a personalized movie personality, and uses TMDB to generate tailored movie recommendations in a shareable visual profile.**
+
+And the technical pipeline is:
+
+```text
+┌──────────────────────┐
+│     Landing Page     │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│   6-Step Movie Quiz  │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│     Next.js API      │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│    Gemini Analysis   │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│ Validated Persona    │
+│       JSON           │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│ Recommendation Logic │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│       TMDB API       │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│   Movie Results      │
+└──────────┬───────────┘
+           ↓
+┌──────────────────────┐
+│  MediaPulse Profile  │
+│       Card           │
+└──────────────────────┘
+```
+
