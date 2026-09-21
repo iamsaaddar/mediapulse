@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { MAX_QUESTIONS } from "@/constants/limits";
+
 import {
 	ConfidenceSchema,
 	TasteProfileSchema,
@@ -39,7 +41,11 @@ export const LastInteractionSchema = z.object({
 });
 
 export const InterviewRequestSchema = z.object({
-	questionCount: z.number().int().min(0).max(10),
+	questionCount: z
+		.number()
+		.int()
+		.min(0)
+		.max(MAX_QUESTIONS),
 	tasteProfile: TasteProfileSchema,
 	lastInteraction: LastInteractionSchema.nullable(),
 });
