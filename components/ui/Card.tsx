@@ -1,10 +1,11 @@
 import type { HTMLAttributes } from "react";
+import { cx } from "@/lib/utils";
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "elevated" | "muted";
 }
 
-const variantClasses = {
+const variantClasses: Record<NonNullable<CardProps["variant"]>, string> = {
   default: "bg-surface border-border",
   elevated: "bg-surface-elevated border-border-strong",
   muted: "bg-surface-muted border-border",
@@ -17,13 +18,11 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={[
-        "rounded-xl border p-5",
+      className={cx(
+        "rounded-xl border p-4 text-foreground sm:p-5",
         variantClasses[variant],
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
       {...props}
     />
   );

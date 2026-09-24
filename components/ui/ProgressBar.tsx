@@ -1,19 +1,25 @@
+import { cx } from "@/lib/utils";
+
 interface ProgressBarProps {
   value: number;
   max?: number;
   label?: string;
+  valueText?: string;
+  className?: string;
 }
 
 export function ProgressBar({
   value,
   max = 100,
   label = "Progress",
+  valueText,
+  className = "",
 }: ProgressBarProps) {
-  const safeMax = Math.max(max, 1);
-  const percentage = Math.min(
-    100,
-    Math.max(0, (value / safeMax) * 100),
-  );
+  const safeMax = Number.isFinite(max) ? Math.max(max, 1) : 100;
+  const safeValue = Number.isFinite(value)
+    ? Math.min(safeMax, Math.max(0, value))
+    : 0;
+  const percentage = (safeValue / safeMax) * 100;
 
   return (
     <div
@@ -21,11 +27,15 @@ export function ProgressBar({
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={safeMax}
-      aria-valuenow={value}
-      className="h-2 w-full overflow-hidden rounded-full bg-surface-muted"
+      aria-valuenow={safeValue}
+      aria-valuetext={valueText}
+      className={cx(
+        "h-2 w-full overflow-hidden rounded-full bg-surface-muted",
+        className,
+      )}
     >
       <div
-        className="h-full rounded-full bg-accent transition-[width]"
+        className="motion-progress h-full rounded-full bg-accent"
         style={{ width: `${percentage}%` }}
       />
     </div>

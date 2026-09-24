@@ -1,6 +1,9 @@
+import { cx } from "@/lib/utils";
+
 interface SpinnerProps {
   size?: "sm" | "md" | "lg";
   label?: string;
+  className?: string;
 }
 
 const sizeClasses = {
@@ -12,15 +15,17 @@ const sizeClasses = {
 export function Spinner({
   size = "md",
   label = "Loading",
+  className = "",
 }: SpinnerProps) {
   return (
     <span
       role="status"
       aria-label={label}
-      className={[
-        "inline-block animate-spin rounded-full border-border border-t-foreground",
+      className={cx(
+        "motion-spinner inline-block rounded-full border-border border-t-accent",
         sizeClasses[size],
-      ].join(" ")}
+        className,
+      )}
     />
   );
 }
