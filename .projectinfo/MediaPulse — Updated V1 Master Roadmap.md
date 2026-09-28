@@ -32,7 +32,7 @@ V1 remains:
 | Phase 2 — Application Foundation | ✅ Complete + Verified |
 | Phase 3 — Design System & UI Foundation | ✅ Complete + Verified |
 | Phase 4 — Landing Page | ⏳ Not started |
-| Phase 5 — Adaptive Interview UI | ⏳ Not started |
+| Phase 5 — Adaptive Interview UI | ✅ Complete |
 | Phase 6 — Gemini Interview Engine | ⏳ Not started |
 | Phase 7 — Recommendation & TMDB Engine | ⏳ Not started |
 | Phase 8 — Results Experience | ⏳ Not started |

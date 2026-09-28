@@ -8,22 +8,30 @@ import {
 	TasteSignalSchema,
 } from "./common";
 
-const SingleChoiceQuestionSchema = z.object({
+export const InterviewOptionSchema = z.object({
+	id: z.string().min(1),
+	label: z.string().min(1),
+	value: z.string().min(1),
+});
+
+const QuestionBaseSchema = z.object({
+	id: z.string().min(1),
+	text: z.string().min(1),
+	required: z.boolean(),
+});
+
+export const SingleChoiceQuestionSchema = QuestionBaseSchema.extend({
 	type: z.literal("single_choice"),
-	text: z.string().min(1),
-	options: z.array(z.string().min(1)).min(2),
+	options: z.array(InterviewOptionSchema).min(2),
 });
 
-const MultiChoiceQuestionSchema = z.object({
+export const MultiChoiceQuestionSchema = QuestionBaseSchema.extend({
 	type: z.literal("multi_choice"),
-	text: z.string().min(1),
-	options: z.array(z.string().min(1)).min(2),
+	options: z.array(InterviewOptionSchema).min(2),
 });
 
-const FreeTextQuestionSchema = z.object({
+export const FreeTextQuestionSchema = QuestionBaseSchema.extend({
 	type: z.literal("free_text"),
-	text: z.string().min(1),
-	options: z.array(z.string()).length(0),
 });
 
 export const InterviewQuestionSchema = z.discriminatedUnion("type", [
