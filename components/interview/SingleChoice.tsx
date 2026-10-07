@@ -5,6 +5,7 @@ interface SingleChoiceProps {
 	value?: string;
 	feedbackId: string;
 	onChange: (value: string) => void;
+	disabled?: boolean;
 }
 
 export function SingleChoice({
@@ -12,6 +13,7 @@ export function SingleChoice({
 	value,
 	feedbackId,
 	onChange,
+	disabled = false,
 }: SingleChoiceProps) {
 	return (
 		<fieldset
@@ -41,6 +43,7 @@ export function SingleChoice({
 							name={question.id}
 							value={option.value}
 							checked={selected}
+							disabled={disabled}
 							required={question.required}
 							onChange={() => onChange(option.value)}
 							className="accent-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"

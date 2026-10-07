@@ -33,7 +33,7 @@ V1 remains:
 | Phase 3 — Design System & UI Foundation | ✅ Complete + Verified |
 | Phase 4 — Landing Page | ⏳ Not started |
 | Phase 5 — Adaptive Interview UI | ✅ Complete |
-| Phase 6 — Gemini Interview Engine | ⏳ Not started |
+| Phase 6 — Gemini Interview Engine | ✅ Complete + Verified |
 | Phase 7 — Recommendation & TMDB Engine | ⏳ Not started |
 | Phase 8 — Results Experience | ⏳ Not started |
 | Phase 9 — Shareable Profile Card | ⏳ Not started |
@@ -44,6 +44,14 @@ V1 remains:
 ### Current position
 
 **PHASE 4 → TASK 4.1 — Build the landing-page hero**
+
+Implementation note: Phase 5 and Phase 6 are already complete and verified. Their
+completion does not make Phase 4 complete; Phase 4 remains the unfinished
+user-facing foundation phase.
+
+> Development note: Phase 5 and Phase 6 were implemented and verified ahead of the
+> remaining Phase 4 landing-page work. This is an execution-order difference, not
+> a roadmap dependency violation. Phase 4 remains the next product-facing phase.
 
 ---
 
@@ -297,7 +305,7 @@ Final Results
 
 The important rule:
 
-> **Gemini recommends. TMDB verifies.**
+> **Gemini proposes. TMDB verifies. MediaPulse decides whether the verified result is acceptable.**
 
 ---
 
@@ -822,7 +830,12 @@ Responsibilities:
 - send compact interview state
 - request next question
 - interpret taste
+- update structured taste state
 - return structured output
+- on completion, return the generated movie personality
+- enforce application-level interview boundaries independently of Gemini
+
+The service must validate Gemini output with the application Zod contract.
 
 ### Task 6.4 — Interview API route
 
@@ -879,7 +892,22 @@ signals
 likes
 dislikes
 confidence
+completion personality
 ```
+
+The completion contract includes:
+
+```text
+personality.title
+personality.description
+```
+
+Personality is required only when `status = complete`.
+
+Provider-facing Gemini schema constraints must remain compatible with the selected
+Gemini model. Application-level Zod validation remains authoritative for limits
+such as string/array bounds and non-empty values.
+
 
 ### Task 6.7 — Invalid AI response handling
 
@@ -895,6 +923,10 @@ Server rejects
 Controlled error
 ```
 
+Provider failures must also use bounded, transient-only retry behavior.
+The application must not retry malformed AI output or Zod-invalid output.
+
+
 ### Task 6.8 — Interview testing
 
 Test:
@@ -903,14 +935,40 @@ Test:
 - long answers
 - contradictory answers
 - repeated preferences
+- free-text answers
 - minimum question boundary
 - maximum question boundary
 - early completion
+- completion personality
 - malformed Gemini responses
+- transient Gemini failures and retry behavior
+- non-retryable Gemini failures
+- provider-schema compatibility
+- prompt/runtime synchronization
+
 
 ### Phase checkpoint
 
 A real user can complete an adaptive Gemini-powered movie taste interview.
+
+The verified Phase 6 contract is:
+
+```text
+CONTINUE
+- exactly one next question
+- structured taste update
+- no personality required
+
+COMPLETE
+- final structured taste update
+- confidence
+- personality.title
+- personality.description
+```
+
+The application enforces the 5–10 question boundary and validates all AI output
+before it enters application state.
+
 
 ---
 
@@ -926,7 +984,25 @@ This phase combines the two provider responsibilities correctly.
 
 ## Task 7.1 — Recommendation request contract
 
-The request contains the completed structured taste state.
+The request contains the completed structured taste state produced by Phase 6.
+
+The recommendation layer must consume the actual completed interview contract rather
+than the old fixed-quiz model. At minimum, the completed state includes:
+
+```text
+tasteProfile
+confidence
+personality.title
+personality.description
+```
+
+Recommendation generation should use the structured taste information as its primary
+input. The personality fields may provide useful contextual signal but must not be
+treated as authoritative movie metadata.
+
+The Phase 7 request/response schemas must be explicitly defined and validated before
+implementation begins.
+
 
 ### Task 7.2 — Gemini recommendation service
 
@@ -1097,6 +1173,25 @@ Handle:
 - rate limits
 - network failure
 
+### Phase 7 pre-implementation contract gate
+
+Before implementing recommendation logic, audit the actual Phase 6 schemas and service
+outputs against the Phase 7 request contract.
+
+Verify:
+
+- exact completed interview payload
+- taste dimensions and field names
+- personality fields
+- confidence semantics
+- application limits
+- recommendation candidate schema
+- Gemini provider schema compatibility
+- TMDB verification input/output boundaries
+
+Do not copy assumptions from the original Phase 6 roadmap if they conflict with the
+implemented interview contract.
+
 ### Phase checkpoint
 
 Given a completed taste profile, MediaPulse can produce a set of verified personalized movie recommendations.
@@ -1111,10 +1206,11 @@ Turn the AI/taste data and verified movies into the main MediaPulse result exper
 
 ### Task 8.1 — Results state
 
-Combine:
+Combine the actual completed Phase 6/7 application data:
 
 ```text
-Movie Personality
+personality.title
+personality.description
 +
 Taste Signals
 +
@@ -1758,9 +1854,9 @@ The final MediaPulse V1 flow is:
 
 These remain locked for V1:
 
-1. **Gemini understands the user.**
-2. **TMDB verifies movies.**
-3. **The application controls AI boundaries.**
+1. **Gemini understands the user and proposes movie candidates.**
+2. **TMDB verifies movie identity and metadata.**
+3. **MediaPulse controls AI boundaries and decides whether verified candidates are acceptable.**
 4. **API keys stay server-side.**
 5. **No database.**
 6. **No authentication.**
@@ -1834,10 +1930,41 @@ What can legitimately be described as an engineering accomplishment.
 
 # IMMEDIATE NEXT STEPS
 
-Phase 3 is **complete and verified**. The next roadmap task is:
+Phase 3 is **complete and verified**.
+Phase 5 is **complete**.
+Phase 6 is **complete and verified**.
+
+Development was intentionally executed out of strict phase order while preserving
+the architecture and dependency boundaries. Phase 4 remains unfinished and is the
+next product-facing roadmap phase.
 
 ## **PHASE 4 — TASK 4.1**
 ### Build the landing-page hero.
 
 Phase 4 begins the user-facing product experience. Do not treat the remaining
 Phase 4 tasks as complete until their screens and behavior are implemented.
+
+After Phase 4 is complete, Phase 7 should begin with the **Phase 7 pre-implementation
+contract gate** so the recommendation engine is built against the actual Phase 6
+completion contract rather than the original roadmap assumptions.
+
+
+---
+
+# ROADMAP MAINTENANCE NOTE
+
+The roadmap remains structurally valid. The Phase 6 implementation evolved from the
+original one-shot/quiz-oriented concept into a production-oriented adaptive Gemini
+interview engine with:
+
+- a dedicated Gemini client and interview service
+- structured Zod-validated output
+- completion personality data
+- application-enforced 5–10 question boundaries
+- provider-schema projection for Gemini compatibility
+- transient-only bounded retries
+- safe error classification and HTTP mapping
+- prompt/runtime synchronization
+- live first-turn, continuation, and completion verification
+
+These are clarifications of the existing architecture, not new product scope.

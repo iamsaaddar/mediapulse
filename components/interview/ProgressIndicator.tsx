@@ -1,8 +1,10 @@
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { MAX_QUESTIONS } from "@/constants/limits";
 
 interface ProgressIndicatorProps {
 	currentQuestion: string | null;
 	questions: ReadonlyArray<{ id: string }>;
+	answeredCount: number;
 }
 
 function getStage(position: number): string {
@@ -14,6 +16,7 @@ function getStage(position: number): string {
 export function ProgressIndicator({
 	currentQuestion,
 	questions,
+	answeredCount,
 }: ProgressIndicatorProps) {
 	const questionIndex = questions.findIndex(
 		(question) => question.id === currentQuestion,
@@ -21,8 +24,7 @@ export function ProgressIndicator({
 
 	if (questionIndex < 0 || questions.length === 0) return null;
 
-	// Keep the active interview below 100%: the adaptive flow can still add questions.
-	const progress = (questionIndex / questions.length) * 100;
+	const progress = Math.min((answeredCount / MAX_QUESTIONS) * 100, 99);
 	const stage = getStage(progress / 100);
 
 	return (
@@ -34,7 +36,7 @@ export function ProgressIndicator({
 			<ProgressBar
 				value={progress}
 				label="Adaptive interview progress"
-				valueText={`${stage}. Additional questions may be added as your profile develops.`}
+				valueText={`${answeredCount} answered. The interview adapts as your profile develops.`}
 			/>
 		</div>
 	);

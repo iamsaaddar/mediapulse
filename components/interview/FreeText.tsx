@@ -5,6 +5,7 @@ interface FreeTextProps {
 	value?: string;
 	feedbackId: string;
 	onChange: (value: string) => void;
+	disabled?: boolean;
 }
 
 export function FreeText({
@@ -12,6 +13,7 @@ export function FreeText({
 	value = "",
 	feedbackId,
 	onChange,
+	disabled = false,
 }: FreeTextProps) {
 	const inputId = `answer-${question.id}`;
 
@@ -26,6 +28,7 @@ export function FreeText({
 			<textarea
 				id={inputId}
 				value={value}
+				disabled={disabled}
 				required={question.required}
 				aria-invalid={question.required && !value.trim() ? true : undefined}
 				aria-describedby={`${question.id}-instruction ${feedbackId}`}

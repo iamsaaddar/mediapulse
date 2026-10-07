@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import type { InterviewPersonality } from "@/types/interview";
 
 interface InterviewCompletionProps {
-	onGenerateRecommendations: () => void;
+	personality: InterviewPersonality;
 }
 
 export function InterviewCompletion({
-	onGenerateRecommendations,
+	personality,
 }: InterviewCompletionProps) {
 	return (
 		<section
@@ -16,21 +16,14 @@ export function InterviewCompletion({
 		>
 			<p className="type-label text-accent">MEDIAPULSE · YOUR PROFILE</p>
 			<div className="space-y-3">
+				<p className="type-label text-muted">YOUR MOVIE PERSONALITY</p>
 				<h2 id="interview-completion-title" className="text-3xl sm:text-4xl">
-					Taste Profile Ready
+					{personality.title}
 				</h2>
 				<p className="mx-auto max-w-lg text-sm text-muted sm:text-base">
-					Your answers have shaped a clearer picture of the stories and films you
-					love. You can now find recommendations chosen for your taste.
+					{personality.description}
 				</p>
 			</div>
-			<Button
-				className="w-full sm:w-auto"
-				onClick={onGenerateRecommendations}
-			>
-				Generate Recommendations
-				<span aria-hidden="true">→</span>
-			</Button>
 		</section>
 	);
 }

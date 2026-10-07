@@ -5,6 +5,7 @@ interface MultiChoiceProps {
 	value?: string[];
 	feedbackId: string;
 	onChange: (value: string[]) => void;
+	disabled?: boolean;
 }
 
 export function MultiChoice({
@@ -12,6 +13,7 @@ export function MultiChoice({
 	value = [],
 	feedbackId,
 	onChange,
+	disabled = false,
 }: MultiChoiceProps) {
 	function toggleOption(optionValue: string, checked: boolean) {
 		onChange(
@@ -46,6 +48,7 @@ export function MultiChoice({
 						name={question.id}
 						value={option.value}
 						checked={value.includes(option.value)}
+						disabled={disabled}
 						onChange={(event) => toggleOption(option.value, event.target.checked)}
 						className="accent-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
 					/>

@@ -4,6 +4,7 @@ import type { TasteProfile } from "@/types/taste";
 import {
 	InterviewRequestSchema,
 	InterviewResponseSchema,
+	InterviewPersonalitySchema,
 	InterviewQuestionSchema,
 	InterviewOptionSchema,
 	SingleChoiceQuestionSchema,
@@ -13,6 +14,7 @@ import {
 
 export type InterviewRequest = z.infer<typeof InterviewRequestSchema>;
 export type InterviewResponse = z.infer<typeof InterviewResponseSchema>;
+export type InterviewPersonality = z.infer<typeof InterviewPersonalitySchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
 export type InterviewOption = z.infer<typeof InterviewOptionSchema>;
 export type SingleChoiceQuestion = z.infer<typeof SingleChoiceQuestionSchema>;
@@ -50,6 +52,7 @@ export interface InterviewState {
 	tasteProfile: TasteProfile;
 	recentInteraction: InterviewInteraction | null;
 	status: InterviewStatus;
+	personality?: InterviewPersonality;
 }
 
 export function createInitialInterviewState(): InterviewState {

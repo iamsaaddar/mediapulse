@@ -14,12 +14,14 @@ interface QuestionRendererProps {
 	question: InterviewQuestion;
 	answer?: InterviewAnswer;
 	onAnswerChange: (answer: InterviewAnswer) => void;
+	disabled?: boolean;
 }
 
 export function QuestionRenderer({
 	question,
 	answer,
 	onAnswerChange,
+	disabled = false,
 }: QuestionRendererProps) {
 	const feedbackId = `answer-feedback-${question.id}`;
 	const validation = validateInterviewAnswer(question, answer);
@@ -31,6 +33,7 @@ export function QuestionRenderer({
 				<SingleChoice
 					question={question}
 					feedbackId={feedbackId}
+					disabled={disabled}
 					value={
 						answer?.type === "single_choice" && answer.questionId === question.id
 							? answer.value
@@ -47,6 +50,7 @@ export function QuestionRenderer({
 				<MultiChoice
 					question={question}
 					feedbackId={feedbackId}
+					disabled={disabled}
 					value={
 						answer?.type === "multi_choice" && answer.questionId === question.id
 							? answer.value
@@ -63,6 +67,7 @@ export function QuestionRenderer({
 				<FreeText
 					question={question}
 					feedbackId={feedbackId}
+					disabled={disabled}
 					value={
 						answer?.type === "free_text" && answer.questionId === question.id
 							? answer.value
