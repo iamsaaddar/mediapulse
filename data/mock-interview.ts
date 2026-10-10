@@ -119,6 +119,7 @@ export function createMockInterviewState(): InterviewState {
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
 		recentInteraction: null,
 		status: "active",
+		recommendation: { status: "idle" },
 	};
 }
 

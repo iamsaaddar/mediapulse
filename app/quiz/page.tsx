@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { InterviewContainer } from "@/components/interview/InterviewContainer";
 import { Button } from "@/components/ui/Button";
@@ -10,8 +10,11 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { MAX_QUESTIONS, MIN_QUESTIONS } from "@/constants/limits";
 import { InterviewApiError, requestInterview } from "@/lib/interview-api";
 import { validateInterviewAnswer } from "@/lib/interview-answer";
+import { createRecommendationRequest } from "@/lib/recommendation-api";
+import { createRecommendationHandoff } from "@/lib/recommendation-handoff";
 import { createInitialInterviewState } from "@/types/interview";
 import type { InterviewAnswer, InterviewRequest, InterviewState } from "@/types/interview";
+import type { RecommendationRequest } from "@/types/recommendation";
 
 export default function QuizPage() {
 	const [state, setState] = useState<InterviewState>(createInitialInterviewState);
@@ -19,6 +22,14 @@ export default function QuizPage() {
 	const [isPending, setIsPending] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const pendingRef = useRef(false);
+	const completedRecommendationRequestRef = useRef<RecommendationRequest | null>(null);
+	const recommendationHandoff = useMemo(
+		() =>
+			createRecommendationHandoff((recommendation) => {
+				setState((current) => ({ ...current, recommendation }));
+			}),
+		[],
+	);
 
 	async function sendRequest(
 		request: InterviewRequest,
@@ -45,6 +56,13 @@ export default function QuizPage() {
 			if (result.status === "continue" && state.questions.some((question) => question.id === result.question.id)) {
 				throw new InterviewApiError("The interview returned a repeated question. Please try again.");
 			}
+			const recommendationRequest =
+				result.status === "complete"
+					? createRecommendationRequest(result)
+					: null;
+			if (recommendationRequest) {
+				completedRecommendationRequestRef.current = recommendationRequest;
+			}
 
 			setState((current) => {
 				const interaction = answer && current.currentQuestion
@@ -63,6 +81,7 @@ export default function QuizPage() {
 						tasteProfile: result.tasteUpdate,
 						recentInteraction: interaction,
 						personality: result.personality,
+						confidence: result.confidence,
 						status: "completed",
 					};
 				}
@@ -77,6 +96,9 @@ export default function QuizPage() {
 					status: "active",
 				};
 			});
+			if (recommendationRequest) {
+				void recommendationHandoff.submit(recommendationRequest);
+			}
 		} catch (error) {
 			setErrorMessage(
 				error instanceof InterviewApiError
@@ -90,6 +112,8 @@ export default function QuizPage() {
 	}
 
 	function startInterview() {
+		completedRecommendationRequestRef.current = null;
+		recommendationHandoff.reset();
 		void sendRequest(
 			{
 				questionCount: 0,
@@ -99,6 +123,11 @@ export default function QuizPage() {
 			true,
 			null,
 		);
+	}
+
+	function retryRecommendations() {
+		const request = completedRecommendationRequestRef.current;
+		if (request) void recommendationHandoff.submit(request, true);
 	}
 
 	function submitAnswer() {
@@ -167,6 +196,7 @@ export default function QuizPage() {
 						onStateChange={updateInterviewState}
 						onSubmit={submitAnswer}
 						onRetry={state.questions.length === 0 ? startInterview : submitAnswer}
+						onRetryRecommendations={retryRecommendations}
 					/>
 				)}
 			</Container>

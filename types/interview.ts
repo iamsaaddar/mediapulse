@@ -1,6 +1,10 @@
 import type { z } from "zod";
 
 import type { TasteProfile } from "@/types/taste";
+import type {
+	RecommendationConfidence,
+	RecommendationHandoffState,
+} from "@/types/recommendation";
 import {
 	InterviewRequestSchema,
 	InterviewResponseSchema,
@@ -53,6 +57,8 @@ export interface InterviewState {
 	recentInteraction: InterviewInteraction | null;
 	status: InterviewStatus;
 	personality?: InterviewPersonality;
+	confidence?: RecommendationConfidence;
+	recommendation: RecommendationHandoffState;
 }
 
 export function createInitialInterviewState(): InterviewState {
@@ -64,5 +70,6 @@ export function createInitialInterviewState(): InterviewState {
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
 		recentInteraction: null,
 		status: "idle",
+		recommendation: { status: "idle" },
 	};
 }

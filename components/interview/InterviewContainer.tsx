@@ -18,6 +18,7 @@ interface InterviewContainerProps {
 	onStateChange: (state: InterviewState) => void;
 	onSubmit: () => void;
 	onRetry: () => void;
+	onRetryRecommendations: () => void;
 }
 
 export function InterviewContainer({
@@ -27,6 +28,7 @@ export function InterviewContainer({
 	onStateChange,
 	onSubmit,
 	onRetry,
+	onRetryRecommendations,
 }: InterviewContainerProps) {
 	const questions = getAvailableInterviewQuestions(state.questions);
 	const question = questions.find(
@@ -61,7 +63,11 @@ export function InterviewContainer({
 			aria-label={isCompleted ? "Interview completion" : "Interview"}
 		>
 			{isCompleted ? (
-				<InterviewCompletion personality={state.personality!} />
+				<InterviewCompletion
+					personality={state.personality!}
+					recommendation={state.recommendation}
+					onRetryRecommendations={onRetryRecommendations}
+				/>
 			) : question ? (
 				<div className="space-y-6">
 					<ProgressIndicator
