@@ -271,6 +271,37 @@ test("accepts a valid completion result using the established schema", async () 
 	assert.equal(service.calls.length, 1);
 });
 
+test("oversized completion profile logs exact safe path and count without logging content", async () => {
+	const result = createCompleteResult();
+	result.tasteUpdate.signals = Array.from({ length: 21 }, (_, index) =>
+		createSignal(
+			"story",
+			index === 0 ? "PRIVATE USER-SENSITIVE INTERVIEW CONTENT" : `Signal ${index}`,
+		),
+	);
+	const service = createService(result);
+
+	await assert.rejects(
+		service.runInterview(createRequest(4)),
+		(error) => error.code === "AI_SERVICE_ERROR" && error.statusCode === 502,
+	);
+
+	const entry = logEntries.at(-1);
+	const issue = entry?.context?.issues?.find(
+		(item) => item.path === "tasteUpdate.signals",
+	);
+	assert.deepEqual(issue, {
+		path: "tasteUpdate.signals",
+		code: "too_big",
+		limit: 20,
+		received: 21,
+	});
+	assert.equal(
+		JSON.stringify(entry).includes("PRIVATE USER-SENSITIVE INTERVIEW CONTENT"),
+		false,
+	);
+});
+
 test("application rejects completion before five answered questions", async () => {
 	for (const questionCount of [0, 4]) {
 		const service = createService(createCompleteResult());

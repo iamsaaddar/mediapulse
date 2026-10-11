@@ -101,6 +101,15 @@ function buildInterviewPrompt(request: InterviewRequest): string {
 	].join("\n\n");
 }
 
+function getValueAtPath(value: unknown, path: PropertyKey[]): unknown {
+	let current = value;
+	for (const key of path) {
+		if (typeof current !== "object" || current === null) return undefined;
+		current = (current as Record<PropertyKey, unknown>)[key];
+	}
+	return current;
+}
+
 export async function runInterview(
 	request: InterviewRequest,
 ): Promise<InterviewResponse> {
@@ -143,10 +152,25 @@ export async function runInterview(
 		logger.error("Gemini interview response failed validation", {
 			category: "INVALID_OUTPUT",
 			questionCount: request.questionCount,
-			issues: result.error.issues.map((issue) => ({
-				path: issue.path,
-				code: issue.code,
-			})),
+			issues: result.error.issues.map((issue) => {
+				const details = issue as z.ZodIssue & { maximum?: number };
+				const rejectedValue = getValueAtPath(generated, issue.path);
+				const received =
+					Array.isArray(rejectedValue)
+						? rejectedValue.length
+						: typeof rejectedValue === "string"
+							? rejectedValue.length
+							: undefined;
+
+				return {
+					path: issue.path.map(String).join("."),
+					code: issue.code,
+					...(typeof details.maximum === "number"
+						? { limit: details.maximum }
+						: {}),
+					...(received !== undefined ? { received } : {}),
+				};
+			}),
 		});
 		throw new AppError(
 			"AI_SERVICE_ERROR",

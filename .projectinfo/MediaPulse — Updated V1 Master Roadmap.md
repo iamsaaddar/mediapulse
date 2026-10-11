@@ -31,27 +31,29 @@ V1 remains:
 | Phase 1 — Technical Architecture | ✅ Complete |
 | Phase 2 — Application Foundation | ✅ Complete + Verified |
 | Phase 3 — Design System & UI Foundation | ✅ Complete + Verified |
-| Phase 4 — Landing Page | ⏳ Not started |
+| Phase 4 — Landing Page | ✅ Complete + Browser Verified |
 | Phase 5 — Adaptive Interview UI | ✅ Complete |
 | Phase 6 — Gemini Interview Engine | ✅ Complete + Verified |
-| Phase 7 — Recommendation & TMDB Engine | ⏳ Not started |
-| Phase 8 — Results Experience | ⏳ Not started |
+| Phase 7 — Recommendation & TMDB Engine | ✅ Complete + Verified |
+| Phase 8 — Results Experience | ✅ Core Complete + Verified; attribution review pending |
 | Phase 9 — Shareable Profile Card | ⏳ Not started |
 | Phase 10 — Production Polish | ⏳ Not started |
-| Phase 11 — Testing & QA | ⏳ Not started |
+| Phase 11 — Testing & QA | 🟡 In progress |
 | Phase 12 — Deployment & Portfolio | ⏳ Not started |
 
 ### Current position
 
-**PHASE 4 → TASK 4.1 — Build the landing-page hero**
+**PHASE 9 → TASK 9.1 — Design the standalone shareable profile card**
 
-Implementation note: Phase 5 and Phase 6 are already complete and verified. Their
-completion does not make Phase 4 complete; Phase 4 remains the unfinished
-user-facing foundation phase.
+Phases 4–8's core implementation is complete. The landing-to-results user journey
+and live recommendation retry path have been browser-verified. Phase 8 still has
+an attribution/linking review before release. Phase 11 remains in progress: the
+automated suite, type-check, lint, production build, and diff checks pass, but
+full cross-device and release QA is still outstanding.
 
-> Development note: Phase 5 and Phase 6 were implemented and verified ahead of the
-> remaining Phase 4 landing-page work. This is an execution-order difference, not
-> a roadmap dependency violation. Phase 4 remains the next product-facing phase.
+> Development note: Phases 5 and 6 were implemented ahead of Phase 4. Phase 4 is
+> now complete; this execution-order difference did not change the dependency
+> boundaries.
 
 ---
 
@@ -1293,6 +1295,35 @@ Movie Personality
 5 Verified Movies
 ```
 
+### Phase 8 completion and verification
+
+**Status: COMPLETE.** The completed interview's actual personality, taste profile,
+and validated recommendation response feed the results experience. The client and
+response schema require exactly five recommendations with distinct TMDB IDs;
+the orchestrator returns an error rather than partial success when it cannot
+verify five movies. Optional poster, overview, and release-date data have safe
+display fallbacks.
+
+Verified in the browser against the live Gemini/TMDB provider path:
+
+- Completed the landing-to-interview-to-results journey and rendered five distinct
+  TMDB-backed movie cards.
+- Retook the quiz and confirmed the previous result state cleared.
+- Forced a recommendations request failure, retried through the UI, and observed
+  five cards from the successful retry.
+
+Automated verification: `node --test` passed (88 tests), `npx tsc --noEmit`
+passed, `npm run lint` passed with one non-blocking `@next/next/no-img-element`
+warning in `components/results/MovieCard.tsx`, `npm run build` passed, and
+`git diff --check` passed.
+
+The audit also found and fixed a stale in-flight recommendation result race on
+reset. A generation guard now prevents a prior attempt from updating a retaken
+interview, with a regression test covering reset and resubmission.
+
+Before release, verify whether the current TMDB rating label satisfies the
+project's applicable TMDB attribution/linking requirements (Task 8.7).
+
 ---
 
 # PHASE 9 — SHAREABLE MOVIE PROFILE
@@ -1720,11 +1751,11 @@ with meaningful release notes.
 | **M1** | Architecture locked |
 | **M2** | Next.js foundation verified |
 | **M3** | Design system complete |
-| **M4** | Landing page complete |
+| **M4** | Landing page complete — browser verified |
 | **M5** | Adaptive interview UI complete |
 | **M6** | Gemini interview working |
-| **M7** | Gemini + TMDB recommendation pipeline working |
-| **M8** | Complete results experience |
+| **M7** | Gemini + TMDB recommendation pipeline working — verified |
+| **M8** | Complete results experience — browser and automated checks verified |
 | **M9** | Shareable profile card |
 | **M10** | Production polish |
 | **M11** | QA complete |
@@ -1930,23 +1961,16 @@ What can legitimately be described as an engineering accomplishment.
 
 # IMMEDIATE NEXT STEPS
 
-Phase 3 is **complete and verified**.
-Phase 5 is **complete**.
-Phase 6 is **complete and verified**.
-
+Phases 0–7 are complete. The Phase 8 results experience is implemented and
+verified, with its TMDB attribution/linking review still required before release.
 Development was intentionally executed out of strict phase order while preserving
-the architecture and dependency boundaries. Phase 4 remains unfinished and is the
-next product-facing roadmap phase.
+the architecture and dependency boundaries.
 
-## **PHASE 4 — TASK 4.1**
-### Build the landing-page hero.
+## **PHASE 9 — TASK 9.1**
+### Design the standalone shareable profile card.
 
-Phase 4 begins the user-facing product experience. Do not treat the remaining
-Phase 4 tasks as complete until their screens and behavior are implemented.
-
-After Phase 4 is complete, Phase 7 should begin with the **Phase 7 pre-implementation
-contract gate** so the recommendation engine is built against the actual Phase 6
-completion contract rather than the original roadmap assumptions.
+After Phase 9, continue with Phase 10 production polish and Phase 11 full QA.
+Before release, close the Phase 8 TMDB attribution/linking review noted above.
 
 
 ---

@@ -18,33 +18,42 @@ export function createRecommendationHandoff(
 ) {
 	let hasStarted = false;
 	let isInFlight = false;
+	let generation = 0;
 
 	return {
 		async submit(request: RecommendationRequest, retry = false): Promise<void> {
 			if (isInFlight || (hasStarted && !retry)) return;
 
+			const requestGeneration = generation;
 			hasStarted = true;
 			isInFlight = true;
 			updateState({ status: "loading" });
 
 			try {
 				const response = await send(request);
-				updateState({ status: "success", response });
+				if (requestGeneration === generation) {
+					updateState({ status: "success", response });
+				}
 			} catch (error) {
-				updateState({
-					status: "error",
-					message:
-						error instanceof RecommendationApiError
-							? error.message
-							: "The recommendation service is temporarily unavailable. Please try again.",
-				});
+				if (requestGeneration === generation) {
+					updateState({
+						status: "error",
+						message:
+							error instanceof RecommendationApiError
+								? error.message
+								: "The recommendation service is temporarily unavailable. Please try again.",
+					});
+				}
 			} finally {
-				isInFlight = false;
+				if (requestGeneration === generation) {
+					isInFlight = false;
+				}
 			}
 		},
 		reset() {
-			if (isInFlight) return;
+			generation += 1;
 			hasStarted = false;
+			isInFlight = false;
 			updateState({ status: "idle" });
 		},
 	};

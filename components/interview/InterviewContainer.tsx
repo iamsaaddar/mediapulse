@@ -19,6 +19,7 @@ interface InterviewContainerProps {
 	onSubmit: () => void;
 	onRetry: () => void;
 	onRetryRecommendations: () => void;
+	onRetake: () => void;
 }
 
 export function InterviewContainer({
@@ -29,6 +30,7 @@ export function InterviewContainer({
 	onSubmit,
 	onRetry,
 	onRetryRecommendations,
+	onRetake,
 }: InterviewContainerProps) {
 	const questions = getAvailableInterviewQuestions(state.questions);
 	const question = questions.find(
@@ -65,8 +67,10 @@ export function InterviewContainer({
 			{isCompleted ? (
 				<InterviewCompletion
 					personality={state.personality!}
+					tasteProfile={state.tasteProfile}
 					recommendation={state.recommendation}
 					onRetryRecommendations={onRetryRecommendations}
+					onRetake={onRetake}
 				/>
 			) : question ? (
 				<div className="space-y-6">

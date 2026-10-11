@@ -114,6 +114,8 @@ export default function QuizPage() {
 	function startInterview() {
 		completedRecommendationRequestRef.current = null;
 		recommendationHandoff.reset();
+		setState(createInitialInterviewState());
+		setErrorMessage(null);
 		void sendRequest(
 			{
 				questionCount: 0,
@@ -127,7 +129,18 @@ export default function QuizPage() {
 
 	function retryRecommendations() {
 		const request = completedRecommendationRequestRef.current;
-		if (request) void recommendationHandoff.submit(request, true);
+		if (request) {
+			setErrorMessage(null);
+			void recommendationHandoff.submit(request, true);
+		}
+	}
+
+	function retakeQuiz() {
+		completedRecommendationRequestRef.current = null;
+		recommendationHandoff.reset();
+		setErrorMessage(null);
+		setHasStarted(false);
+		setState(createInitialInterviewState());
 	}
 
 	function submitAnswer() {
@@ -197,6 +210,7 @@ export default function QuizPage() {
 						onSubmit={submitAnswer}
 						onRetry={state.questions.length === 0 ? startInterview : submitAnswer}
 						onRetryRecommendations={retryRecommendations}
+						onRetake={retakeQuiz}
 					/>
 				)}
 			</Container>

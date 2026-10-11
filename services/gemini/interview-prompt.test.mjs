@@ -105,3 +105,14 @@ test("prompt requires a grounded, specific personality on completion", () => {
 	assert.match(prompt, /a `personality` object with a specific `title` and concise `description`/);
 	assert.match(prompt, /include the required `personality.title` and `personality.description` for a completed interview/);
 });
+
+test("prompt explicitly keeps generated values within application schema limits", () => {
+	assert.match(prompt, /at most 20 distinct taste signals/);
+	assert.match(prompt, /at most 30 likes and 30 dislikes/);
+	assert.match(prompt, /taste signal value is at most 300 characters/);
+	assert.match(prompt, /like or dislike is at most 200 characters/);
+	assert.match(prompt, /question text within 300 characters/);
+	assert.match(prompt, /provide 2 to 8 options/);
+	assert.match(prompt, /personality title within 80 characters/);
+	assert.match(prompt, /description within 600 characters/);
+});
