@@ -63,6 +63,7 @@ export function InterviewContainer({
 			className="mx-auto w-full max-w-2xl p-6 sm:p-8"
 			role="group"
 			aria-label={isCompleted ? "Interview completion" : "Interview"}
+			aria-busy={isPending || undefined}
 		>
 			{isCompleted ? (
 				<InterviewCompletion

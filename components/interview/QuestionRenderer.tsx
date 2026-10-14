@@ -93,6 +93,7 @@ export function QuestionRenderer({
 			{control}
 			<p
 				id={feedbackId}
+				aria-live="polite"
 				className={`text-sm ${
 					validation.isValid && validation.hasAnswer
 						? "text-success"
