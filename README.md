@@ -8,7 +8,7 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 
 **Gemini proposes. TMDB verifies. MediaPulse decides.**
 
-[**Live Demo**](mediapulse-movie.vercel.app) 
+[**Live Demo**](https://mediapulse-movie.vercel.app/) 
 
 > **Project status:** Core experience implemented. Final UI refinements, release testing, and deployment are in progress.
 
@@ -16,16 +16,23 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 
 ## 📸 Screenshots
 
-| Landing Page                              | Adaptive Interview                      |
-| ----------------------------------------- | --------------------------------------- |
-|                                           |                                         |
-| (\screenshots\landing-page.png) | (\screenshots\adaptive-interview.png) |
-
-### Personalized Results
+| Landing Page                              |
+| ----------------------------------------- |
+|                                           |
+| <img width="1119" height="597" alt="landing-page" src="https://github.com/user-attachments/assets/e21562b6-b040-4d39-9fae-dd9b7a7aa217" /> 
 
 
+| Adaptive Interview                      |
+| --------------------------------------- |
+|                                         |
+| <img width="1044" height="620" alt="adaptive-interview" src="https://github.com/user-attachments/assets/546f8d6a-5ef3-4e81-9cb1-be01f8d6dd81" /> 
 
-(\screenshots\personalized-results.png)
+| Personalized Results                      |
+| ----------------------------------------- |
+|                                           |
+
+| <img width="759" height="627" alt="personalized-results" src="https://github.com/user-attachments/assets/116a9bcd-6ccc-4614-8951-39f321ca91e8" />
+
 
 
 ---
