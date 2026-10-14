@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
-import type { InterviewPersonality } from "@/types/interview";
 import type {
 	RecommendationHandoffState,
 	RecommendationResponse,
@@ -64,7 +63,6 @@ export function buildPersonalityAttributes(tasteProfile: TasteProfile) {
 }
 
 interface ResultsExperienceProps {
-	personality: InterviewPersonality;
 	tasteProfile: TasteProfile;
 	recommendation: RecommendationHandoffState;
 	onRetryRecommendations: () => void;
@@ -72,7 +70,6 @@ interface ResultsExperienceProps {
 }
 
 export function ResultsExperience({
-	personality,
 	tasteProfile,
 	recommendation,
 	onRetryRecommendations,
@@ -85,14 +82,6 @@ export function ResultsExperience({
 
 	return (
 		<div className="space-y-8 pt-2">
-			<section className="space-y-6 rounded-2xl border border-border bg-surface/60 p-5 sm:p-6">
-				<div className="space-y-3">
-					<p className="type-label text-accent">MEDIAPULSE · YOUR PROFILE</p>
-					<h2 className="text-3xl sm:text-4xl">{personality.title}</h2>
-					<p className="max-w-3xl text-sm text-muted sm:text-base">{personality.description}</p>
-				</div>
-			</section>
-
 			{(signalGroups.length > 0 || likes.length > 0 || dislikes.length > 0) && (
 				<section className="space-y-4 rounded-2xl border border-border bg-surface/60 p-5 sm:p-6">
 					<p className="type-label text-accent">PERSONALITY TRAITS</p>

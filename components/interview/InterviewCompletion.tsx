@@ -35,7 +35,6 @@ export function InterviewCompletion({
 				</p>
 			</div>
 			<ResultsExperience
-				personality={personality}
 				tasteProfile={tasteProfile}
 				recommendation={recommendation}
 				onRetryRecommendations={onRetryRecommendations}
