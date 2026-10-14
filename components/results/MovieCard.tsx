@@ -41,7 +41,17 @@ export function MovieCard({ movie, reason }: MovieCardProps) {
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-xl font-semibold text-foreground">{movie.title}</h3>
+            <h3 className="text-xl font-semibold text-foreground">
+              <a
+                href={`https://www.themoviedb.org/movie/${movie.tmdbId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-sm hover:text-accent hover:underline hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+                aria-label={`${movie.title} on TMDB, opens in a new tab`}
+              >
+                {movie.title}
+              </a>
+            </h3>
             <p className="mt-1 text-sm text-muted">
               {formatReleaseYear(movie.releaseDate)}
               {typeof movie.rating === "number" ? ` • TMDB ${movie.rating.toFixed(1)}` : ""}
