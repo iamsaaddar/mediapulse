@@ -100,8 +100,10 @@ function createRequest(questionCount = 0) {
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
 		lastInteraction: questionCount === 0 ? null : {
 			question: {
-				id: "previous-question",
-				text: "What kind of story do you enjoy?",
+				id: questionCount === 1 ? "favorite-movie" : "previous-question",
+				text: questionCount === 1
+					? "What is your favorite movie of all time?"
+					: "What kind of story do you enjoy?",
 				required: true,
 				type: "free_text",
 			},
@@ -172,8 +174,28 @@ function collectSchemaNodes(schema, nodes = []) {
 	return nodes;
 }
 
-test("first turn sends the compact initial state and accepts one continue question", async () => {
-	const request = createRequest();
+test("first turn always returns the fixed opening without calling Gemini", async () => {
+	const service = createService(new Error("Gemini must not be called for the opening"));
+	const expected = {
+		status: "continue",
+		question: {
+			id: "favorite-movie",
+			text: "What is your favorite movie of all time?",
+			required: true,
+			type: "free_text",
+		},
+		tasteUpdate: { signals: [], likes: [], dislikes: [] },
+		confidence: { overall: 0 },
+	};
+
+	assert.deepEqual(await service.runInterview(createRequest()), expected);
+	assert.deepEqual(await service.runInterview(createRequest()), expected);
+	assert.equal(service.calls.length, 0);
+	assert.equal(InterviewResponseSchema.safeParse(expected).success, true);
+});
+
+test("Gemini structured-output schema retains the established response contract", async () => {
+	const request = createRequest(1);
 	const result = createContinueResult();
 	const service = createService(result);
 
@@ -260,6 +282,65 @@ test("subsequent turns include the latest profile and interaction", async () => 
 	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
 });
 
+test("title-only favorite-movie answer reaches Gemini for an adaptive follow-up", async () => {
+	const request = createRequest(1);
+	request.lastInteraction.answer = "Arrival";
+	const followUp = createContinueResult();
+	followUp.question.text =
+		"What about Arrival stayed with you most: its ideas, its relationships, or something else?";
+	const service = createService(followUp);
+
+	assert.deepEqual(await service.runInterview(request), followUp);
+	assert.equal(service.calls.length, 1);
+	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assert.equal(
+		service.calls[0].prompt.includes("Arrival"),
+		true,
+		"The favorite-movie title must be available to the model",
+	);
+});
+
+test("favorite-movie explanation is preserved as evidence for the next turn", async () => {
+	const request = createRequest(1);
+	request.lastInteraction.answer =
+		"Arrival — I love how its quiet atmosphere builds toward an emotional, hopeful ending.";
+	const service = createService(createContinueResult());
+
+	await service.runInterview(request);
+
+	assert.equal(service.calls.length, 1);
+	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assert.ok(service.calls[0].prompt.includes(request.lastInteraction.answer));
+});
+
+test("ambiguous movie titles can be clarified without adding unsupported details", async () => {
+	const request = createRequest(1);
+	request.lastInteraction.answer = "The Fall";
+	const clarification = createContinueResult();
+	clarification.question.text =
+		"Could you tell me a little more about the movie you mean?";
+	const service = createService(clarification);
+
+	assert.deepEqual(await service.runInterview(request), clarification);
+	assert.equal(service.calls.length, 1);
+	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assert.match(service.calls[0].prompt, /unfamiliar or ambiguous[\s\S]*?do not fabricate details/i);
+});
+
+test("vague favorite-movie answers are passed through for a polite clarification", async () => {
+	const request = createRequest(1);
+	request.lastInteraction.answer = "I'm not sure—maybe something emotional.";
+	const clarification = createContinueResult();
+	clarification.question.text =
+		"No problem—could you name a movie that gave you an emotional experience you enjoyed?";
+	const service = createService(clarification);
+
+	assert.deepEqual(await service.runInterview(request), clarification);
+	assert.equal(service.calls.length, 1);
+	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assert.match(service.calls[0].prompt, /answer is vague or does not identify a movie[\s\S]*?clarifying question/i);
+});
+
 test("accepts a valid completion result using the established schema", async () => {
 	const result = createCompleteResult();
 	const service = createService(result);
@@ -303,7 +384,7 @@ test("oversized completion profile logs exact safe path and count without loggin
 });
 
 test("application rejects completion before five answered questions", async () => {
-	for (const questionCount of [0, 4]) {
+	for (const questionCount of [1, 4]) {
 		const service = createService(createCompleteResult());
 		await assert.rejects(
 			service.runInterview(createRequest(questionCount)),
@@ -575,7 +656,7 @@ test("rejects malformed output as a safe application error", async () => {
 	const service = createService({ status: "continue", confidence: { overall: 4 } });
 
 	await assert.rejects(
-		service.runInterview(createRequest()),
+		service.runInterview(createRequest(1)),
 		(error) => error.code === "AI_SERVICE_ERROR" && error.statusCode === 502,
 	);
 	assert.equal(service.calls.length, 1);
@@ -588,7 +669,7 @@ test("service rejects blank generated text instead of returning unvalidated outp
 	const service = createService(invalidOutput);
 
 	await assert.rejects(
-		service.runInterview(createRequest()),
+		service.runInterview(createRequest(1)),
 		(error) => error.code === "AI_SERVICE_ERROR" && error.statusCode === 502,
 	);
 	assert.equal(service.calls.length, 1);
@@ -599,7 +680,7 @@ test("propagates provider failures without retrying or fabricating a result", as
 	const service = createService(providerError);
 
 	await assert.rejects(
-		service.runInterview(createRequest()),
+		service.runInterview(createRequest(1)),
 		(error) => error === providerError,
 	);
 	assert.equal(service.calls.length, 1);
@@ -617,7 +698,7 @@ test("maps internal provider failures to safe application errors", async () => {
 
 	for (const { code, status } of cases) {
 		const service = createService(new FakeGeminiClientError(code));
-		await assert.rejects(service.runInterview(createRequest()), (error) => {
+		await assert.rejects(service.runInterview(createRequest(1)), (error) => {
 			assert.equal(error.statusCode, status);
 			assert.equal(error.code, status === 429 ? "RATE_LIMITED" : "AI_SERVICE_ERROR");
 			assert.doesNotMatch(error.message, /private provider detail/);

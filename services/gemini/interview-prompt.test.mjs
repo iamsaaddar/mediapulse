@@ -68,11 +68,21 @@ test("prompt uses compact state and asks exactly one adaptive question", () => {
 	assert.match(prompt, /current taste profile/i);
 	assert.match(prompt, /latest question/i);
 	assert.match(prompt, /latest answer/i);
-	assert.match(prompt, /questionCount = 0/);
-	assert.match(prompt, /lastInteraction = null/);
+	assert.match(prompt, /Gemini is first invoked after the user submits an answer/i);
 	assert.match(prompt, /exactly one question per continuing interview turn/i);
 	assert.match(prompt, /Do not return multiple alternative questions/);
 	assert.match(prompt, /Avoid repeating information that is already sufficiently understood/);
+	assert.match(prompt, /Do not follow a fixed question sequence/);
+});
+
+test("favorite movie anchors adaptive follow-ups without unsupported assumptions", () => {
+	assert.match(prompt, /fixed opening question without calling Gemini/i);
+	assert.match(prompt, /favorite movie as an initial anchor, not a complete profile/i);
+	assert.match(prompt, /explanation as valuable evidence/i);
+	assert.match(prompt, /tentative inferences grounded in the user's actual answer/i);
+	assert.match(prompt, /unfamiliar or ambiguous[\s\S]*?do not fabricate details/i);
+	assert.match(prompt, /answer is vague or does not identify a movie[\s\S]*?clarifying question/i);
+	assert.match(prompt, /Do not recommend movies during the interview/);
 });
 
 test("prompt handles vague and contradictory signals without inventing certainty", () => {

@@ -23,7 +23,11 @@ export function FreeText({
 				{question.text}
 			</label>
 			<p id={`${question.id}-instruction`} className="text-sm text-muted">
-				{question.required ? "A response is required." : "Your response is optional."}
+				{question.id === "favorite-movie"
+					? "Tell us the movie that means the most to you. What makes it special to you?"
+					: question.required
+						? "A response is required."
+						: "Your response is optional."}
 			</p>
 			<textarea
 				id={inputId}

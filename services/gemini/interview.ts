@@ -113,6 +113,20 @@ function getValueAtPath(value: unknown, path: PropertyKey[]): unknown {
 export async function runInterview(
 	request: InterviewRequest,
 ): Promise<InterviewResponse> {
+	if (request.questionCount === 0) {
+		return {
+			status: "continue",
+			question: {
+				id: "favorite-movie",
+				text: "What is your favorite movie of all time?",
+				required: true,
+				type: "free_text",
+			},
+			tasteUpdate: { signals: [], likes: [], dislikes: [] },
+			confidence: { overall: 0 },
+		};
+	}
+
 	let generated: unknown;
 	try {
 		generated = await getGeminiClient().generateStructured(
