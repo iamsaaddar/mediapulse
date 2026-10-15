@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Button } from "@/components/ui/Button";
 import { getAvailableInterviewQuestions } from "@/lib/interview-limits";
@@ -58,9 +57,8 @@ export function InterviewContainer({
 	}
 
 	return (
-		<Card
-			variant="elevated"
-			className="mx-auto w-full max-w-2xl p-6 sm:p-8"
+		<section
+			className="interview-shell mx-auto w-full max-w-3xl"
 			role="group"
 			aria-label={isCompleted ? "Interview completion" : "Interview"}
 			aria-busy={isPending || undefined}
@@ -74,13 +72,13 @@ export function InterviewContainer({
 					onRetake={onRetake}
 				/>
 			) : question ? (
-				<div className="space-y-6">
+				<div className="interview-shell__content">
 					<ProgressIndicator
 						currentQuestion={state.currentQuestion}
 						questions={questions}
 						answeredCount={state.questionCount}
 					/>
-					<div key={question.id} className="motion-question-enter">
+					<div key={question.id} className="interview-question motion-question-enter">
 						<QuestionRenderer
 							question={question}
 							answer={answer}
@@ -95,11 +93,11 @@ export function InterviewContainer({
 					/>
 				</div>
 			) : isPending ? (
-				<p className="py-8 text-center text-sm text-muted" role="status" aria-live="polite">
-					Asking Gemini for your next question…
+				<p className="interview-waiting" role="status" aria-live="polite">
+					{state.questionCount === 0 ? "Setting the scene…" : "Finding your next question…"}
 				</p>
 			) : (
-				<div className="space-y-4">
+				<div className="interview-error">
 					{errorMessage ? (
 						<ErrorMessage
 							message={errorMessage}
@@ -119,6 +117,6 @@ export function InterviewContainer({
 					action={<Button variant="secondary" onClick={onRetry}>Try again</Button>}
 				/>
 			) : null}
-		</Card>
+		</section>
 	);
 }

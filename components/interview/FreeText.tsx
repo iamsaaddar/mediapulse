@@ -18,11 +18,11 @@ export function FreeText({
 	const inputId = `answer-${question.id}`;
 
 	return (
-		<div className="space-y-3">
-			<label htmlFor={inputId} className="block text-lg font-medium">
+		<div className="free-text-answer">
+			<label htmlFor={inputId} className="interview-question__prompt">
 				{question.text}
 			</label>
-			<p id={`${question.id}-instruction`} className="text-sm text-muted">
+			<p id={`${question.id}-instruction`} className="interview-question__instruction">
 				{question.id === "favorite-movie"
 					? "Tell us the movie that means the most to you. What makes it special to you?"
 					: question.required
@@ -38,7 +38,7 @@ export function FreeText({
 				aria-describedby={`${question.id}-instruction ${feedbackId}`}
 				onChange={(event) => onChange(event.target.value)}
 				rows={4}
-				className="w-full resize-y rounded-lg border border-control-border bg-surface px-4 py-3 text-sm text-foreground outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
+				className="free-text-answer__input"
 			/>
 		</div>
 	);

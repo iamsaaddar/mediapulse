@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 
 import { InterviewContainer } from "@/components/interview/InterviewContainer";
@@ -179,20 +178,15 @@ export default function QuizPage() {
 	}
 
 	return (
-		<main className="page-section min-h-screen">
-			<Container as="div" width="interview" className="space-y-8">
-				<div className="space-y-4">
-					<Link href="/" className="text-sm text-muted hover:text-foreground">
-						<span aria-hidden="true">←</span> MediaPulse
-					</Link>
-					<header className="space-y-2">
-						<p className="type-label text-accent">A CONVERSATION ABOUT FILM</p>
-						<h1 className="text-3xl sm:text-4xl">Find your movie taste</h1>
-						<p className="max-w-2xl text-sm text-muted sm:text-base">
-							Share what draws you to a film. Gemini will adapt each next question to
-							what you have told us.
-						</p>
-					</header>
+		<main className="discovery-page">
+			<Container as="div" width="interview" className="discovery-page__content">
+				<div className="discovery-page__intro">
+					<p className="type-label text-accent">Let&apos;s find your next film</p>
+					<h1>Every favorite has a story.</h1>
+					<p>
+						Start with one movie that means something to you. We&apos;ll follow
+						your answers toward the next one.
+					</p>
 				</div>
 				{!hasStarted ? (
 					<div className="space-y-4">

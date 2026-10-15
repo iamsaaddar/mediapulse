@@ -1,16 +1,10 @@
-import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
 import type { RecommendationResponse } from "@/types/recommendation";
+import { MovieArtwork } from "./MovieArtwork";
 
-function formatReleaseYear(releaseDate: string): string {
-  if (!releaseDate) return "—";
+function formatReleaseYear(releaseDate: string): string | null {
+  if (!releaseDate) return null;
   const match = /^\d{4}/.exec(releaseDate);
-  return match ? match[0] : "—";
-}
-
-export function getPosterUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  return `https://image.tmdb.org/t/p/w500${path}`;
+  return match ? match[0] : null;
 }
 
 interface MovieCardProps {
@@ -19,58 +13,40 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, reason }: MovieCardProps) {
-  const posterUrl = getPosterUrl(movie.posterPath);
+  const year = formatReleaseYear(movie.releaseDate);
   const overview = movie.overview?.trim();
 
   return (
-    <Card className="group overflow-hidden border-border bg-surface-elevated p-0" variant="elevated">
-      <div className="aspect-[2/3] overflow-hidden bg-surface-muted">
-        {posterUrl ? (
-          <img
-            src={posterUrl}
-            alt={`${movie.title} poster`}
-            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center p-6 text-center text-sm text-muted">
-            {movie.title}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-4 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="text-xl font-semibold text-foreground">
-              <a
-                href={`https://www.themoviedb.org/movie/${movie.tmdbId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-sm hover:text-accent hover:underline hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-                aria-label={`${movie.title} on TMDB, opens in a new tab`}
-              >
-                {movie.title}
-              </a>
-            </h3>
-            <p className="mt-1 text-sm text-muted">
-              {formatReleaseYear(movie.releaseDate)}
-              {typeof movie.rating === "number" ? ` • TMDB ${movie.rating.toFixed(1)}` : ""}
-            </p>
-          </div>
-          {typeof movie.rating === "number" ? (
-            <Badge variant="accent" className="shrink-0">
-              {movie.rating.toFixed(1)}
-            </Badge>
-          ) : null}
+    <article className="movie-card">
+      <MovieArtwork
+        title={movie.title}
+        artworkPath={movie.posterPath}
+        alt={`${movie.title} poster`}
+        sizes="(max-width: 40rem) 80vw, (max-width: 64rem) 40vw, 22vw"
+        className="movie-card__artwork"
+      />
+      <div className="movie-card__content">
+        <p className="movie-card__metadata">
+          {year}
+          {year && movie.rating > 0 ? " · " : ""}
+          {movie.rating > 0 ? `TMDB ${movie.rating.toFixed(1)}` : ""}
+        </p>
+        <h5 className="movie-card__title">{movie.title}</h5>
+        {overview ? <p className="movie-card__overview">{overview}</p> : null}
+        <div className="movie-card__reason">
+          <p className="type-label">Why this fits</p>
+          <p>{reason}</p>
         </div>
-
-        {overview ? <p className="text-sm leading-6 text-muted">{overview}</p> : null}
-
-        <div className="rounded-lg border border-border bg-surface p-3">
-          <p className="type-label text-accent">WHY THIS FITS</p>
-          <p className="mt-2 text-sm leading-6 text-foreground">{reason}</p>
-        </div>
+        <a
+          href={`https://www.themoviedb.org/movie/${movie.tmdbId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="movie-card__link"
+          aria-label={`Explore ${movie.title} on TMDB, opens in a new tab`}
+        >
+          Explore on TMDB <span aria-hidden="true">↗</span>
+        </a>
       </div>
-    </Card>
+    </article>
   );
 }

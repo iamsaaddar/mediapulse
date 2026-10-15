@@ -1,23 +1,22 @@
-import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 
 const steps = [
   {
     number: "01",
-    title: "Take the quiz",
-    description: "Answer a few questions about the movies you enjoy.",
+    title: "Start with a favorite",
+    description: "Tell us about the movie that means the most to you.",
   },
   {
     number: "02",
-    title: "Discover your personality",
+    title: "Follow your curiosity",
     description:
-      "MediaPulse learns your individual movie taste and creates your movie personality from your answers.",
+      "A thoughtful, adaptive conversation gets to know what you look for in a story.",
   },
   {
     number: "03",
-    title: "Get movies matched to your vibe",
+    title: "Find your next film",
     description:
-      "Use that understanding to find movies personalized to your taste.",
+      "Explore five verified recommendations with reasons grounded in your answers.",
   },
 ];
 
@@ -29,18 +28,19 @@ export function HowItWorks() {
     >
       <Container as="div" width="content">
         <div className="landing-steps__heading">
-          <h2 id="how-it-works-title">How it works</h2>
+          <p className="type-label text-accent">A little about your taste</p>
+          <h2 id="how-it-works-title">The best recommendations begin with a conversation.</h2>
         </div>
         <ol className="landing-steps__grid">
           {steps.map((step) => (
             <li className="landing-steps__item" key={step.number}>
-              <Card className="landing-step-card">
+              <div className="landing-step-card">
                 <span className="landing-step-card__number" aria-hidden="true">
                   {step.number}
                 </span>
                 <h3>{step.title}</h3>
                 <p>{step.description}</p>
-              </Card>
+              </div>
             </li>
           ))}
         </ol>

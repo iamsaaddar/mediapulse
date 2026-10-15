@@ -25,22 +25,22 @@ export function MultiChoice({
 
 	return (
 		<fieldset
-			className="space-y-3"
+			className="interview-options"
 			aria-required={question.required || undefined}
 			aria-invalid={question.required && value.length === 0 ? true : undefined}
 			aria-describedby={`${question.id}-instruction ${feedbackId}`}
 		>
-			<legend className="mb-4 text-lg font-medium">{question.text}</legend>
-			<p id={`${question.id}-instruction`} className="mb-4 text-sm text-muted">
+			<legend className="interview-question__prompt">{question.text}</legend>
+			<p id={`${question.id}-instruction`} className="interview-question__instruction">
 				Choose all that apply{question.required ? " · select at least one" : " · optional"}
 			</p>
 			{question.options.map((option) => (
 				<label
 					key={option.id}
-					className={`motion-selectable flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${
+					className={`interview-option motion-selectable ${
 						value.includes(option.value)
-							? "border-accent bg-accent-subtle ring-1 ring-accent/50"
-							: "border-control-border bg-surface hover:bg-surface-elevated"
+							? "interview-option--selected"
+							: ""
 					}`}
 				>
 					<input
@@ -52,7 +52,10 @@ export function MultiChoice({
 						onChange={(event) => toggleOption(option.value, event.target.checked)}
 						className="accent-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
 					/>
-					<span>{option.label}</span>
+					<span className="interview-option__label">{option.label}</span>
+					<span className="interview-option__check" aria-hidden="true">
+						{value.includes(option.value) ? "✓" : ""}
+					</span>
 				</label>
 			))}
 		</fieldset>

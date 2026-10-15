@@ -24,13 +24,14 @@ export function ProgressIndicator({
 
 	if (questionIndex < 0 || questions.length === 0) return null;
 
-	const progress = Math.min((answeredCount / MAX_QUESTIONS) * 100, 99);
+	const currentPosition = Math.min(answeredCount + 1, MAX_QUESTIONS);
+	const progress = Math.min((currentPosition / MAX_QUESTIONS) * 100, 99);
 	const stage = getStage(progress / 100);
 
 	return (
-		<div className="space-y-2" aria-live="polite">
+		<div className="interview-progress" aria-live="polite">
 			<div className="flex items-center justify-between gap-4">
-				<p className="type-label text-muted">Interview progress</p>
+				<p className="type-label text-muted">Question {currentPosition} <span aria-hidden="true">/</span> up to {MAX_QUESTIONS}</p>
 				<p className="text-sm font-medium text-foreground">{stage}</p>
 			</div>
 			<ProgressBar

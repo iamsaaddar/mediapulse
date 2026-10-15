@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import type {
@@ -7,6 +6,7 @@ import type {
 } from "@/types/recommendation";
 import type { TasteProfile } from "@/types/taste";
 
+import { MovieArtwork } from "./MovieArtwork";
 import { MovieCard } from "./MovieCard";
 
 const TASTE_DIMENSION_LABELS: Record<string, string> = {
@@ -79,61 +79,46 @@ export function ResultsExperience({
 	const response = recommendation.status === "success" ? recommendation.response : null;
 	const movies = getRecommendationMovies(response);
 	const isCompleteSuccess = recommendation.status === "success" && movies.length === 5;
+	const featured = movies[0];
+	const featuredYear = featured?.movie.releaseDate.match(/^\d{4}/)?.[0];
 
 	return (
-		<div className="space-y-8 pt-2">
+		<div className="results-experience">
 			{(signalGroups.length > 0 || likes.length > 0 || dislikes.length > 0) && (
-				<section className="space-y-4 rounded-2xl border border-border bg-surface/60 p-5 sm:p-6">
-					<p className="type-label text-accent">PERSONALITY TRAITS</p>
+				<section className="taste-summary" aria-labelledby="taste-summary-title">
+					<p id="taste-summary-title" className="type-label">A few things we heard</p>
 
 					{signalGroups.length > 0 ? (
-						<div className="flex flex-wrap gap-2">
-							{signalGroups.map(({ label, value }) => (
-								<Badge key={`${label}-${value}`} variant="muted" className="text-foreground">
-									{label}: {value}
-								</Badge>
+						<div className="taste-summary__signals">
+							{signalGroups.slice(0, 4).map(({ label, value }) => (
+								<p key={`${label}-${value}`}><span>{label}</span>{value}</p>
 							))}
 						</div>
 					) : null}
 
 					{likes.length > 0 ? (
-						<div className="space-y-2">
-							<p className="text-xs font-medium uppercase tracking-[0.12em] text-muted">What you lean toward</p>
-							<div className="flex flex-wrap gap-2">
-								{likes.map((item, index) => (
-									<Badge key={`like-${index}`} variant="default" className="bg-accent-subtle text-accent">
-										{item}
-									</Badge>
-								))}
-							</div>
+						<div className="taste-summary__note">
+							<span>You gravitate toward</span> {likes.slice(0, 3).join(" · ")}
 						</div>
 					) : null}
 
 					{dislikes.length > 0 ? (
-						<div className="space-y-2">
-							<p className="text-xs font-medium uppercase tracking-[0.12em] text-muted">What tends to miss</p>
-							<div className="flex flex-wrap gap-2">
-								{dislikes.map((item, index) => (
-									<Badge key={`dislike-${index}`} variant="default" className="bg-error/10 text-error">
-										{item}
-									</Badge>
-								))}
-							</div>
+						<div className="taste-summary__note">
+							<span>You tend to avoid</span> {dislikes.slice(0, 3).join(" · ")}
 						</div>
 					) : null}
 				</section>
 			)}
 
-			<div aria-live="polite" className="space-y-4">
+			<div aria-live="polite">
 				{recommendation.status === "loading" ? (
-					<div className="rounded-2xl border border-border bg-surface/60 p-5 text-left sm:p-6">
-						<p className="type-label text-accent">RECOMMENDATION ANALYSIS</p>
-						<p className="mt-3 text-base text-foreground">Analyzing your taste profile and curating a final set of movies.</p>
-						<ul className="mt-4 space-y-2 text-sm text-muted">
-							<li>Matching your personality to verified films</li>
-							<li>Checking the strongest TMDB matches</li>
-							<li>Preparing your five personalized picks</li>
-						</ul>
+					<div className="recommendation-pending" role="status">
+						<p className="type-label">The next scene</p>
+						<h3>Finding films that fit what you told us.</h3>
+						<p>Your taste profile is complete. We&apos;re checking recommendations against TMDB.</p>
+						<div className="recommendation-pending__lines" aria-hidden="true">
+							<span /><span /><span />
+						</div>
 					</div>
 				) : recommendation.status === "error" ? (
 					<ErrorMessage
@@ -150,13 +135,10 @@ export function ResultsExperience({
 			</div>
 
 			{recommendation.status === "success" ? (
-				<section className="space-y-5" aria-labelledby="results-section-title">
-					<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-						<div>
-							<p className="type-label text-accent">VERIFIED RECOMMENDATIONS</p>
-							<h3 id="results-section-title" className="mt-2 text-2xl sm:text-3xl">Your five movie matches</h3>
-						</div>
-						<Button variant="secondary" onClick={onRetake}>Take the quiz again</Button>
+				<section className="recommendation-results" aria-labelledby="results-section-title">
+					<div className="results-heading">
+						<p className="type-label">Your cinematic matches</p>
+						<h3 id="results-section-title">A story worth staying up for.</h3>
 					</div>
 
 					{!isCompleteSuccess ? (
@@ -166,11 +148,59 @@ export function ResultsExperience({
 							action={<Button variant="secondary" onClick={onRetryRecommendations}>Try recommendations again</Button>}
 						/>
 					) : (
-						<div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-							{movies.map((item) => (
-								<MovieCard key={item.movie.tmdbId} movie={item.movie} reason={item.reason} />
-							))}
-						</div>
+						<>
+							{featured ? (
+								<article className="featured-movie">
+									<MovieArtwork
+										title={featured.movie.title}
+										artworkPath={featured.movie.backdropPath?.trim()
+											? featured.movie.backdropPath
+											: featured.movie.posterPath}
+										alt={`${featured.movie.title} ${featured.movie.backdropPath ? "backdrop" : "poster"}`}
+										sizes="(max-width: 48rem) 90vw, 46vw"
+										className="featured-movie__artwork"
+									/>
+									<div className="featured-movie__content">
+										<p className="featured-movie__metadata">
+											{featuredYear}
+											{featuredYear && featured.movie.rating > 0 ? " · " : ""}
+											{featured.movie.rating > 0 ? `TMDB ${featured.movie.rating.toFixed(1)}` : ""}
+										</p>
+										<h4>{featured.movie.title}</h4>
+										{featured.movie.overview.trim() ? (
+											<p className="featured-movie__overview">{featured.movie.overview}</p>
+										) : null}
+										<div className="featured-movie__reason">
+											<p className="type-label">Why this fits your taste</p>
+											<p>{featured.reason}</p>
+										</div>
+										<a
+											href={`https://www.themoviedb.org/movie/${featured.movie.tmdbId}`}
+											target="_blank"
+											rel="noreferrer"
+											className="featured-movie__link"
+											aria-label={`Explore ${featured.movie.title} on TMDB, opens in a new tab`}
+										>
+											Explore film on TMDB <span aria-hidden="true">↗</span>
+										</a>
+									</div>
+								</article>
+							) : null}
+							<div className="more-films">
+								<div className="more-films__heading">
+									<div>
+										<p className="type-label">And in the same spirit</p>
+										<h4>A few more stories for your evening.</h4>
+									</div>
+									<Button variant="ghost" onClick={onRetake}>Start again</Button>
+								</div>
+								<div className="more-films__grid">
+									{movies.slice(1).map((item) => (
+										<MovieCard key={item.movie.tmdbId} movie={item.movie} reason={item.reason} />
+									))}
+								</div>
+							</div>
+						</>
 					)}
 				</section>
 			) : null}

@@ -23,14 +23,14 @@ export function InterviewCompletion({
 	return (
 		<section
 			aria-labelledby="interview-completion-title"
-			className="motion-result-reveal space-y-6 py-4 text-center sm:py-8"
+			className="interview-completion motion-result-reveal"
 		>
-			<div className="space-y-3">
-				<p className="type-label text-accent">YOUR MOVIE PERSONALITY</p>
-				<h2 id="interview-completion-title" className="text-3xl sm:text-4xl">
+			<div className="interview-completion__intro">
+				<p className="type-label">Your movie personality</p>
+				<h2 id="interview-completion-title">
 					{personality.title}
 				</h2>
-				<p className="mx-auto max-w-3xl text-sm text-muted sm:text-base">
+				<p>
 					{personality.description}
 				</p>
 			</div>

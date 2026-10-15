@@ -28,14 +28,15 @@ export function InterviewNavigation({
 		validateInterviewAnswer(currentQuestion, currentAnswer).isValid;
 
 	return (
-		<div className="space-y-3 border-t border-border pt-5">
+		<div className="interview-navigation">
+			<p>Each answer helps shape your next question.</p>
 			<div className="flex justify-end">
 				<Button
 					disabled={!isAnswerValid || isPending}
 					loading={isPending}
 					onClick={onSubmit}
 				>
-					Submit answer
+					Continue <span aria-hidden="true">→</span>
 				</Button>
 			</div>
 		</div>
