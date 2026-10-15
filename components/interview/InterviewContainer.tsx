@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/Button";
 import { getAvailableInterviewQuestions } from "@/lib/interview-limits";
 import type { InterviewState } from "@/types/interview";
 
-import { InterviewCompletion } from "./InterviewCompletion";
 import { InterviewNavigation } from "./InterviewNavigation";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { QuestionRenderer } from "./QuestionRenderer";
@@ -17,8 +16,6 @@ interface InterviewContainerProps {
 	onStateChange: (state: InterviewState) => void;
 	onSubmit: () => void;
 	onRetry: () => void;
-	onRetryRecommendations: () => void;
-	onRetake: () => void;
 }
 
 export function InterviewContainer({
@@ -28,8 +25,6 @@ export function InterviewContainer({
 	onStateChange,
 	onSubmit,
 	onRetry,
-	onRetryRecommendations,
-	onRetake,
 }: InterviewContainerProps) {
 	const questions = getAvailableInterviewQuestions(state.questions);
 	const question = questions.find(
@@ -63,15 +58,7 @@ export function InterviewContainer({
 			aria-label={isCompleted ? "Interview completion" : "Interview"}
 			aria-busy={isPending || undefined}
 		>
-			{isCompleted ? (
-				<InterviewCompletion
-					personality={state.personality!}
-					tasteProfile={state.tasteProfile}
-					recommendation={state.recommendation}
-					onRetryRecommendations={onRetryRecommendations}
-					onRetake={onRetake}
-				/>
-			) : question ? (
+			{question ? (
 				<div className="interview-shell__content">
 					<ProgressIndicator
 						currentQuestion={state.currentQuestion}

@@ -3,9 +3,9 @@ import { SiteHeader } from "@/components/ui/SiteHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MediaPulse — AI-Powered Movie Personality",
+  title: "MediaPulse — Your Next Great Story",
   description:
-    "Discover what your movie taste says about you with MediaPulse, an AI-powered movie personality and recommendation experience.",
+    "Tell us what moves you. MediaPulse finds the film that feels like it was made for tonight.",
 };
 
 export default function RootLayout({
