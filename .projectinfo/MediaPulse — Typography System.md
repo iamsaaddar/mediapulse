@@ -2,6 +2,8 @@
 
 **Status:** Defined for Phase 3, Task 3.2
 
+> **Status note (2026-10-20):** The phase label below is historical, not a statement that implementation remains pending. See [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md).
+
 ## Font roles
 
 - **System sans-serif** (`system-ui`, then `Segoe UI`) is the practical interface voice: body copy, controls, labels, metadata, and utility text. It keeps the interface modern and readable without requiring a downloaded font.

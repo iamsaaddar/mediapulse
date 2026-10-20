@@ -1,5 +1,7 @@
 # MEDIAPULSE — COMPLETE LOCAL DEVELOPMENT HANDOFF
 
+> **Status notice (2026-10-20):** This is a historical planning handoff. The project owner reports the project complete. Do not follow its Phase 3 / Task 3.1 takeover instructions as current work. For the inspected repository structure and current operating context, read [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md).
+
 ## IMPORTANT: THIS IS AN EXISTING PROJECT
 
 You are taking over an existing local software project called **MediaPulse**.

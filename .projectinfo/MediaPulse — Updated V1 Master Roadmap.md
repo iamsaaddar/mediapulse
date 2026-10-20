@@ -1,5 +1,7 @@
 # MediaPulse — Updated V1 Master Roadmap
 
+> **Status notice (2026-10-20):** The phase sequencing and “immediate next steps” below are historical planning material. The project owner reports the project complete. For current repository context, read [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md); do not treat old phase/task assignments as active instructions.
+
 ## Current Project Direction
 
 **MediaPulse** is an AI-powered movie personality and recommendation engine.
@@ -1959,18 +1961,9 @@ What can legitimately be described as an engineering accomplishment.
 
 ---
 
-# IMMEDIATE NEXT STEPS
+# HISTORICAL NEXT STEPS (SUPERSEDED)
 
-Phases 0–7 are complete. The Phase 8 results experience is implemented and
-verified, with its TMDB attribution/linking review still required before release.
-Development was intentionally executed out of strict phase order while preserving
-the architecture and dependency boundaries.
-
-## **PHASE 9 — TASK 9.1**
-### Design the standalone shareable profile card.
-
-After Phase 9, continue with Phase 10 production polish and Phase 11 full QA.
-Before release, close the Phase 8 TMDB attribution/linking review noted above.
+The following Phase 9 / Task 9.1 assignment reflected an earlier planning snapshot. It is not the current project status or an instruction to continue implementation. Use `MediaPulse — Current Project Reference.md` for the current repository context. The user's completion statement is recorded there; this documentation update did not independently verify hosting, release checks, or external-service availability.
 
 
 ---

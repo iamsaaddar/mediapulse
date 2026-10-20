@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PARALLAX — 3D DVD Case</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main class="app">
+
+  <!-- ============================================================
+       STAGE — provides the perspective for the whole 3D scene.
+       Drag anywhere in here to orbit the case.
+       ============================================================ -->
+  <div class="stage" id="stage" aria-label="3D DVD case viewer. Drag to rotate.">
+    <div class="halo" aria-hidden="true"></div>
+
+    <!-- case-wrap only handles the horizontal "make room for the open lid" shift -->
+    <div class="case-wrap">
+      <!-- case handles ONLY the whole-object rotation (rotateX / rotateY) -->
+      <div class="case" id="case">
+
+        <!-- ================= BACK COVER (faces −Z) ================= -->
+        <section class="face back-cover" aria-hidden="true">
+          <div class="bc-top">
+            <div class="bc-brand">MERIDIAN PICTURES</div>
+            <div class="bc-title">PARALLAX</div>
+          </div>
+
+          <div class="bc-hero"></div>
+
+          <p class="bc-synopsis">
+            When the research vessel Caldera slips through a fold in
+            spacetime, its crew discovers the signal they have been
+            chasing was sent by themselves — from a future that has
+            already happened. As the ship's clocks begin to disagree
+            with one another, navigator Ila Renn must decide which
+            version of reality to bring home.
+          </p>
+
+          <div class="bc-features">
+            DELETED SCENES · DIRECTOR'S COMMENTARY · THE MAKING OF PARALLAX
+            · CONCEPT ART GALLERY · THEATRICAL TRAILER
+          </div>
+
+          <div class="bc-footer">
+            <div class="bc-badge">PG-13</div>
+            <div class="bc-meta">142 MIN · WIDESCREEN 2.39:1 · 5.1 SURROUND</div>
+            <div class="bc-barcode"></div>
+          </div>
+
+          <div class="bc-gloss"></div>
+        </section>
+
+        <!-- ================= SPINE (left edge, faces −X) ================= -->
+        <div class="edge edge-left">
+          <div class="spine-content">
+            <div class="spine-band"></div>
+            <div class="spine-title">PARALLAX</div>
+            <div class="spine-mark">DVD</div>
+          </div>
+        </div>
+
+        <!-- ================= RIGHT / TOP / BOTTOM EDGES ================= -->
+        <div class="edge edge-right"></div>
+        <div class="edge edge-top"></div>
+        <div class="edge edge-bottom"></div>
+
+        <!-- ================= INTERIOR: TRAY + DISC ================= -->
+        <div class="tray">
+          <div class="disc">
+            <div class="disc-label"></div>
+          </div>
+          <div class="hub"></div>
+        </div>
+
+        <!-- ================= HINGED LID (front cover) =================
+             transform-origin is the LEFT edge, so this element swings
+             like a book cover, completely independently of the case
+             rotation applied on .case.
+             ============================================================ -->
+        <div class="lid" id="lid">
+          <div class="cover-front">
+            <div class="poster">
+              <div class="p-sky"></div>
+              <div class="p-stars"></div>
+              <div class="p-planet"></div>
+              <div class="p-ring"></div>
+              <div class="p-beam"></div>
+              <div class="p-vignette"></div>
+
+              <div class="p-head">
+                <div class="p-studio">MERIDIAN PICTURES</div>
+                <h1 class="p-title">PARALLAX</h1>
+                <div class="p-rule"></div>
+                <div class="p-tag">BEYOND THE LAST HORIZON</div>
+              </div>
+
+              <div class="p-foot">A FILM BY A. VOSS</div>
+              <div class="p-gloss"></div>
+            </div>
+          </div>
+
+          <!-- Inside face of the lid — only visible when the case is open -->
+          <div class="cover-inner">
+            <div class="inner-emblem"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONTROLS — real <button> elements, fully keyboard accessible
+       ============================================================ -->
+  <div class="controls" role="group" aria-label="DVD case controls">
+    <button type="button" class="btn" id="btn-front">Front</button>
+    <button type="button" class="btn" id="btn-back">Back</button>
+    <button type="button" class="btn" id="btn-side">Side</button>
+    <button type="button" class="btn btn--accent" id="btn-open">Open</button>
+    <button type="button" class="btn" id="btn-close">Close</button>
+    <button type="button" class="btn btn--ghost" id="btn-reset">Reset</button>
+  </div>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

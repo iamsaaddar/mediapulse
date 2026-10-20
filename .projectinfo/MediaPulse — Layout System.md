@@ -2,6 +2,8 @@
 
 **Status:** Defined for Phase 3, Task 3.4
 
+> **Status note (2026-10-20):** The phase label below is historical, not a statement that implementation remains pending. See [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md).
+
 ## Containers
 
 | Container | Maximum outer width | Use |

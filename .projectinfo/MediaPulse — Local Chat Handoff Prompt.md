@@ -1,5 +1,7 @@
 # MediaPulse — Local Chat Handoff
 
+> **Status notice (2026-10-20):** This is a historical handoff prompt; its Phase 3 / Task 3.1 instructions are obsolete. The project owner reports the project complete. Read [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md) for the inspected codebase context and current source-of-truth notes.
+
 You are taking over an existing software project called **MediaPulse**.
 
 Your job is to continue development from the current state without redesigning decisions that have already been finalized.

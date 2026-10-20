@@ -3,6 +3,8 @@
 **Status:** Locked for Phase 3, Task 3.1  
 **Applies to:** Landing, adaptive interview, analysis, results, movie cards, and profile card
 
+> **Status note (2026-10-20):** The phase label below is historical. This remains the design rationale; see [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md) for current codebase context.
+
 ## Product character
 
 MediaPulse should feel like a thoughtful movie discovery experience with the atmosphere of a small, beautifully curated screening room. It is cinematic, modern, atmospheric, premium, minimal, and slightly mysterious. The interface should make the user feel that their taste is being noticed and interpreted, rather than processed by a generic AI utility.
