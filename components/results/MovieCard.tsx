@@ -42,6 +42,7 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 	const dragState = useRef<DragState | null>(null);
 	const suppressClick = useRef(false);
 	const year = releaseYear(movie.releaseDate);
+	const watchUrl = `https://vidlink.pro/movie/${movie.tmdbId}`;
 	const genres = movie.genreIds.map((id) => GENRE_NAMES[id]).filter(Boolean);
 	const overview = movie.overview.trim();
 	const matchReason = reason.trim();
@@ -97,6 +98,7 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+		if (event.target !== event.currentTarget) return;
 		if ((event.key === "Enter" || event.key === " ") && !event.repeat) {
 			event.preventDefault();
 			toggleCase();
@@ -108,10 +110,9 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 			<div
 				className={stageClass}
 				style={{ "--dvd-rotate-x": `${rotationX}deg`, "--dvd-rotate-y": `${rotationY}deg` } as CSSProperties}
-				role="button"
+				role="group"
 				tabIndex={0}
-				aria-label={`${movie.title} DVD case. ${isOpen ? "Open; press Enter or Space to close." : "Closed; press Enter or Space to open."} Drag to rotate.`}
-				aria-expanded={isOpen}
+				aria-label={`${movie.title} DVD case. ${isOpen ? "Open; press Enter or Space to close." : "Closed; press Enter or Space to open."} Drag to rotate. Open the case to select the disc and watch the movie.`}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
@@ -145,7 +146,19 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 						<div className="dvd-edge dvd-edge-bottom" aria-hidden="true" />
 
 						<div className="dvd-tray" aria-label="DVD interior tray">
-							<div className="dvd-disc" aria-hidden="true"><div className="dvd-disc-label" /></div>
+							<a
+								className="dvd-disc dvd-disc-link"
+								href={watchUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								aria-label={`Watch ${movie.title} on Vidlink (opens in a new tab)`}
+								tabIndex={isOpen ? 0 : -1}
+								aria-hidden={!isOpen}
+								onPointerDown={(event) => event.stopPropagation()}
+								onClick={(event) => event.stopPropagation()}
+							>
+								<div className="dvd-disc-label"><span>PLAY</span></div>
+							</a>
 							<div className="dvd-hub" aria-hidden="true" />
 						</div>
 

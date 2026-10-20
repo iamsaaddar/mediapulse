@@ -4013,6 +4013,21 @@ body:has(.theater-experience) > .site-header {
     0 2px 6px rgba(0, 0, 0, .65);
 }
 
+.dvd-display .dvd-disc-link {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.dvd-display .dvd-disc-link:hover {
+  filter: brightness(1.12);
+}
+
+.dvd-display .dvd-disc-link:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
 /* centre hole */
 .dvd-display .dvd-disc::before {
   content: "";
@@ -4054,6 +4069,25 @@ body:has(.theater-experience) > .site-header {
     rgba(22, 46, 84, .30) 62%,
     rgba(255, 255, 255, .05) 88%,
     transparent 93%);
+}
+
+.dvd-display .dvd-disc-label span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #152235;
+  font-size: clamp(0.48rem, 0.55vw, 0.68rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.dvd-display .dvd-disc-link:hover .dvd-disc-label span,
+.dvd-display .dvd-disc-link:focus-visible .dvd-disc-label span {
+  opacity: 1;
 }
 
 /* retaining hub clip poking through the hole */
