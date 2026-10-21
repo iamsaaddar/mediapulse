@@ -1,5 +1,4 @@
-export const MIN_QUESTIONS = 5;
-export const MAX_QUESTIONS = 10;
+export { MIN_INTERVIEW_QUESTIONS as MIN_QUESTIONS, MAX_INTERVIEW_QUESTIONS as MAX_QUESTIONS } from "./preferences";
 
 // Accommodates the seven story-type examples in the V1 product reference plus one choice.
 export const MAX_INTERVIEW_OPTIONS = 8;

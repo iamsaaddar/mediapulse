@@ -122,6 +122,7 @@ function buildRecommendationPrompt(request: RecommendationRequest): string {
 		"CURRENT USER STATE (JSON):",
 		JSON.stringify({
 			tasteProfile: request.tasteProfile,
+			preferences: request.preferences,
 			confidence: request.confidence,
 			personality: request.personality,
 		}),

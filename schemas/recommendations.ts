@@ -18,11 +18,13 @@ import {
 } from "./common";
 import { InterviewPersonalitySchema } from "./interview";
 import { VerifiedMovieSchema } from "./movie";
+import { PreferenceSelectionSchema } from "./preferences";
 
 export const RecommendationCandidateSchema = z.object({
 	title: boundedNonBlankText(MAX_CANDIDATE_TITLE_LENGTH),
 	year: z.number().int().min(MIN_MOVIE_YEAR).max(MAX_MOVIE_YEAR).nullable(),
 	reason: boundedNonBlankText(MAX_RECOMMENDATION_REASON_LENGTH),
+	fitScore: z.number().min(0).max(1),
 }).strict();
 
 export const GeminiRecommendationOutputSchema = z.object({
@@ -43,6 +45,7 @@ export const RecommendationRequestSchema = z.object({
 	tasteProfile: TasteProfileSchema.extend({
 		signals: z.array(TasteSignalSchema.strict()).max(MAX_TASTE_SIGNALS),
 	}).strict(),
+	preferences: PreferenceSelectionSchema,
 	confidence: RecommendationConfidenceSchema,
 	personality: InterviewPersonalitySchema,
 }).strict();

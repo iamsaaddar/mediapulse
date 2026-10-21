@@ -4,6 +4,7 @@ import {
 	RecommendationResponseSchema,
 } from "@/schemas/recommendations";
 import type { InterviewResponse } from "@/types/interview";
+import type { PreferenceSelection } from "@/schemas/preferences";
 import type {
 	RecommendationRequest,
 	RecommendationResponse,
@@ -13,7 +14,7 @@ const SAFE_ERROR_MESSAGES: Record<string, string> = {
 	INVALID_REQUEST: "Your completed interview could not be used. Please try again.",
 	AI_SERVICE_ERROR: "The recommendation service is temporarily unavailable. Please try again.",
 	MOVIE_DATA_ERROR: "The movie data service is temporarily unavailable. Please try again.",
-	INSUFFICIENT_RESULTS: "We could not verify enough recommendations. Please try again.",
+	INSUFFICIENT_RESULTS: "We could not find five strong matches that meet your filters. Try broadening your decades or languages and try again.",
 	RATE_LIMITED: "The recommendation service is busy. Please try again shortly.",
 	INTERNAL_ERROR: "The recommendation service is temporarily unavailable. Please try again.",
 };
@@ -27,9 +28,11 @@ export class RecommendationApiError extends Error {
 
 export function createRecommendationRequest(
 	completion: Extract<InterviewResponse, { status: "complete" }>,
+	preferences: PreferenceSelection,
 ): RecommendationRequest {
 	return RecommendationRequestSchema.parse({
 		tasteProfile: completion.tasteUpdate,
+		preferences,
 		confidence: completion.confidence,
 		personality: completion.personality,
 	});

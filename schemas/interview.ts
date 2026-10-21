@@ -20,6 +20,7 @@ import {
 	TasteProfileSchema,
 	TasteSignalSchema,
 } from "./common";
+import { PreferenceSelectionSchema } from "./preferences";
 
 export const InterviewOptionSchema = z.object({
 	id: boundedNonBlankText(MAX_INTERVIEW_ID_LENGTH),
@@ -69,6 +70,7 @@ export const InterviewRequestSchema = z
 			.min(0)
 			.max(MAX_QUESTIONS),
 		tasteProfile: TasteProfileSchema,
+		preferences: PreferenceSelectionSchema,
 		lastInteraction: LastInteractionSchema.nullable(),
 	})
 	.superRefine((request, context) => {

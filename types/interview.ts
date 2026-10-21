@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type { TasteProfile } from "@/types/taste";
+import type { PreferenceSelection } from "@/schemas/preferences";
 import type {
 	RecommendationConfidence,
 	RecommendationHandoffState,
@@ -58,6 +59,7 @@ export interface InterviewState {
 	status: InterviewStatus;
 	personality?: InterviewPersonality;
 	confidence?: RecommendationConfidence;
+	preferences?: PreferenceSelection;
 	recommendation: RecommendationHandoffState;
 }
 

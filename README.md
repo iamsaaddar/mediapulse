@@ -39,9 +39,11 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 
 ## ✨ Features
 
-- **Adaptive AI Interview:** Dynamically generated questions that respond to your previous answers instead of following a fixed questionnaire.
+- **Anchor Movie Vibes:** Enter a movie and choose from granular AI-generated cinematic textures and micro-genres.
+- **Personal Filters:** Select multiple decades and original languages as hard recommendation constraints.
+- **Adaptive Micro-Interview:** Answer two to five targeted questions scoped to the selected vibes.
 - **Personalized Movie Personality:** A cinematic profile based on your preferences, emotional responses, narrative interests, and viewing habits.
-- **Tailored Recommendations:** Five movie recommendations with explanations of why each film may suit your taste.
+- **Discovery-Aware Recommendations:** Five verified films ranked for taste fit and discovery, with popularity deliberately balanced rather than used as the default.
 - **TMDB Movie Verification:** Candidate movies are checked against TMDB to obtain reliable identities and metadata.
 - **Structured AI Responses:** Runtime schema validation helps ensure that AI-generated data follows the application's expected format.
 - **Interactive Results:** Explore your movie personality, taste attributes, posters, ratings, and personalized recommendations.
@@ -52,46 +54,33 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 
 ## 🧠 How It Works
 
-MediaPulse combines AI-driven personalization with verified movie data.
+MediaPulse combines AI-driven personalization with verified movie data and user-controlled constraints.
 
 ```text
-User
-  |
-  v
-Adaptive AI Interview
-  |
-  v
-Structured Taste Profile
-  |
-  v
-AI-Generated Recommendations
-  |
-  v
-TMDB Search & Verification
-  |
-  v
-Personalized Results
+Anchor Movie → Gemini Vibe Extraction → Vibe / Decade / Language Selection
+  → 2–5 Question Micro-Interview → Candidate Fit + Discovery Ranking
+  → TMDB Verification + Hard Filters → Five Personalized Results
 ```
 
-### 1. Understand the viewer
+### 1. Choose a movie texture
 
-Google Gemini generates relevant interview questions based on the user's previous answers. The application enforces interview boundaries to keep the experience manageable.
+Enter an anchor movie. Gemini proposes 10–15 granular vibe keywords and micro-genres. Choose the textures that match what you want; the anchor title is context, not an assumption that you like every part of that film.
 
-### 2. Build a taste profile
+### 2. Set hard filters
 
-The collected answers form a structured representation of the user's cinematic preferences, including interests in stories, characters, emotions, themes, pacing, and endings.
+Select any combination of decades from the 1940s through the 2020s and supported original languages. Empty selections mean Any Era or Any Language. The server checks final TMDB release year and original-language metadata against selected filters.
 
-### 3. Generate recommendations
+### 3. Take the micro-interview
 
-Gemini uses the completed taste profile to propose five movies and provide personalized explanations for each recommendation.
+Gemini asks one adaptive question at a time, staying within the selected vibe space. The application requires at least two answered questions and caps the interview at five.
 
-### 4. Verify movie data
+### 4. Find aesthetic matches
 
-MediaPulse searches TMDB for each candidate and evaluates whether the returned movie is a sufficiently reliable match. Uncertain matches can be rejected instead of displaying potentially incorrect information.
+Gemini proposes 7–8 candidates per batch and provides a taste-fit estimate. MediaPulse searches TMDB, rejects uncertain identities and any decade or language violations, then ranks verified films using taste fit and a log-scaled inverse vote-count discovery signal. It reserves up to three spots for strong-fit lesser-known films when available.
 
 ### 5. Present the results
 
-Verified movie metadata and personalized explanations are combined into a results experience that presents the user's movie personality and recommendations.
+Success returns exactly five distinct TMDB-verified movies with personalized explanations. If five strong matches cannot meet the selected filters, the app asks the user to broaden those filters instead of silently relaxing them.
 
 ---
 

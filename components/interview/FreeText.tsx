@@ -23,9 +23,7 @@ export function FreeText({
 				{question.text}
 			</label>
 			<p id={`${question.id}-instruction`} className="interview-question__instruction">
-				{question.id === "favorite-movie"
-					? "Tell us the movie that means the most to you. What makes it special to you?"
-					: question.required
+				{question.required
 						? "A response is required."
 						: "Your response is optional."}
 			</p>
