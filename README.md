@@ -4,9 +4,9 @@
 
 MediaPulse is an AI-powered movie discovery app that goes beyond genres and ratings to understand **why you enjoy the movies you love**.
 
-Through an adaptive AI interview, MediaPulse learns about your cinematic preferences, builds a personalized movie personality, and recommends five films tailored to your taste. Google Gemini powers the interview and recommendation process, while TMDB verifies movie identities and provides movie metadata.
+Through an adaptive AI interview, MediaPulse learns about your cinematic preferences, builds a personalized movie personality, and recommends seven films tailored to your taste. Google Gemini powers the interview and recommendation process, while TMDB verifies movie identities and provides movie metadata.
 
-**Gemini proposes. TMDB verifies. MediaPulse decides.**
+**TMDB discovers. Gemini matches. MediaPulse verifies.**
 
 [**Live Demo**](https://mediapulse-movie.vercel.app/) 
 
@@ -40,10 +40,10 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 ## ✨ Features
 
 - **Anchor Movie Vibes:** Enter a movie and choose from granular AI-generated cinematic textures and micro-genres.
-- **Personal Filters:** Select multiple decades and original languages as hard recommendation constraints.
+- **Personal Filters:** Select any TMDB movie genres, decades, and original languages as hard recommendation constraints. Leaving genres empty lets the selected vibes lead.
 - **Adaptive Micro-Interview:** Answer two to five targeted questions scoped to the selected vibes.
 - **Personalized Movie Personality:** A cinematic profile based on your preferences, emotional responses, narrative interests, and viewing habits.
-- **Discovery-Aware Recommendations:** Five verified films ranked for taste fit and discovery, with popularity deliberately balanced rather than used as the default.
+- **TMDB-First Recommendations:** TMDB discovers a broad, personalized candidate pool; Gemini selects seven films from that verified pool based on the user's taste.
 - **TMDB Movie Verification:** Candidate movies are checked against TMDB to obtain reliable identities and metadata.
 - **Structured AI Responses:** Runtime schema validation helps ensure that AI-generated data follows the application's expected format.
 - **Interactive Results:** Explore your movie personality, taste attributes, posters, ratings, and personalized recommendations.
@@ -57,30 +57,31 @@ Through an adaptive AI interview, MediaPulse learns about your cinematic prefere
 MediaPulse combines AI-driven personalization with verified movie data and user-controlled constraints.
 
 ```text
-Anchor Movie → Gemini Vibe Extraction → Vibe / Decade / Language Selection
-  → 2–5 Question Micro-Interview → Candidate Fit + Discovery Ranking
-  → TMDB Verification + Hard Filters → Five Personalized Results
+Anchor Movie → Gemini Vibe Extraction → Vibe / Genre / Decade / Language Selection
+  → 2–5 Question Micro-Interview → Gemini Discovery Plan
+  → Multi-Lane TMDB Candidate Discovery + Hard Filters
+  → Gemini Selects Seven From the Eligible Pool → TMDB Details
 ```
 
 ### 1. Choose a movie texture
 
-Enter an anchor movie. Gemini proposes 10–15 granular vibe keywords and micro-genres. Choose the textures that match what you want; the anchor title is context, not an assumption that you like every part of that film.
+Enter an anchor movie and optionally explain what you want MediaPulse to understand about why you like it. Gemini proposes 10–15 granular vibe keywords and micro-genres. Choose the textures that match what you want; the anchor title is context, not an assumption that you like every part of that film.
 
 ### 2. Set hard filters
 
-Select any combination of decades from the 1940s through the 2020s and supported original languages. Empty selections mean Any Era or Any Language. The server checks final TMDB release year and original-language metadata against selected filters.
+Select any combination of TMDB's 19 movie genres, decades from the 1940s through the 2020s, and supported original languages. Selected genres, decades, and languages constrain the interview and recommendations; an empty selection for a filter means any genre, era, or language. The server checks final TMDB genre IDs, release year, and original-language metadata against selected filters.
 
 ### 3. Take the micro-interview
 
-Gemini asks one adaptive question at a time, staying within the selected vibe space. The application requires at least two answered questions and caps the interview at five.
+Gemini asks one adaptive question at a time, staying within the selected vibe space and, when chosen, the selected genres. The application requires at least two answered questions and caps the interview at five.
 
-### 4. Find aesthetic matches
+### 4. Discover the candidate pool
 
-Gemini proposes 7–8 candidates per batch and provides a taste-fit estimate. MediaPulse searches TMDB, rejects uncertain identities and any decade or language violations, then ranks verified films using taste fit and a log-scaled inverse vote-count discovery signal. It reserves up to three spots for strong-fit lesser-known films when available.
+Gemini turns the completed profile into a structured discovery plan. MediaPulse validates the plan, maps genre names to TMDB's genre catalog, resolves keyword concepts through TMDB, and runs bounded complementary Discover queries. The server merges candidates by TMDB ID and enforces every selected genre, decade, and language constraint. Popularity, vote counts, and ratings do not affect discovery ordering or selection.
 
-### 5. Present the results
+### 5. Select and present results
 
-Success returns exactly five distinct TMDB-verified movies with personalized explanations. If five strong matches cannot meet the selected filters, the app asks the user to broaden those filters instead of silently relaxing them.
+Gemini chooses exactly seven unique IDs from the eligible TMDB candidate pool and gives each a personalized explanation. MediaPulse validates the IDs, fetches authoritative TMDB details for the seven selections, and checks the hard filters again. Discovery is bounded; if the catalog cannot supply seven eligible candidates within those limits, the app gives an honest insufficient-results message instead of relaxing selected filters or padding the list.
 
 ---
 
@@ -180,6 +181,7 @@ Run the project's available quality checks:
 
 ```bash
 npm run lint
+npm test
 npm run build
 ```
 
@@ -187,11 +189,6 @@ Additional TypeScript checking:
 
 ```bash
 npx tsc --noEmit
-```
-
-
-```bash
-node --test
 ```
 
 

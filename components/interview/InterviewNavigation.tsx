@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./interview.module.css";
+import { cxModule } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { validateInterviewAnswer } from "@/lib/interview-answer";
 import { getAvailableInterviewQuestions } from "@/lib/interview-limits";
@@ -28,7 +30,7 @@ export function InterviewNavigation({
 		validateInterviewAnswer(currentQuestion, currentAnswer).isValid;
 
 	return (
-		<div className="interview-navigation">
+		<div className={cxModule(styles, "interview-navigation")}>
 			<p>Each answer helps shape your next question.</p>
 			<div className="flex justify-end">
 				<Button

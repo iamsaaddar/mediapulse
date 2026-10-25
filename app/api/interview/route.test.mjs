@@ -95,6 +95,14 @@ function firstTurnRequest() {
 	return {
 		questionCount: 0,
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
+		preferences: {
+			anchorMovie: "Arrival",
+			anchorNote: "I love the ideas about language more than the action.",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
+		},
 		lastInteraction: null,
 	};
 }
@@ -107,6 +115,14 @@ function completionTurnRequest() {
 			likes: ["emotionally layered stories"],
 			dislikes: [],
 		},
+		preferences: {
+			anchorMovie: "Arrival",
+			anchorNote: "I love the ideas about language more than the action.",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
+		},
 		lastInteraction: subsequentTurnRequest().lastInteraction,
 	};
 }
@@ -115,6 +131,14 @@ function subsequentTurnRequest() {
 	return {
 		questionCount: 1,
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
+		preferences: {
+			anchorMovie: "Arrival",
+			anchorNote: "I love the ideas about language more than the action.",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
+		},
 		lastInteraction: {
 			question: {
 				id: "story-type",

@@ -12,7 +12,7 @@ const VIBE_PROMPT = [
     "You are an uncompromising film-texture and cultural analyst helping a viewer dissect what kind of movie experience they want.",
     "Given only the movie title below, return 10 to 15 concise, distinct, granular vibe keywords or micro-genres.",
     "Gather a comprehensive mix of both basic/surface identifiers and deeper, visceral, or psychological keywords.",
-    "CRITICAL: Do not shy away from mature, explicit, adult, R-rated, or NC-17 themes if the anchor movie warrants them (e.g., sex , intense eroticism, explicit nudity , raw youth angst, taboo obsession, visceral violence, existential dread, raw intimacy). Treat keywords like raw cinematic texture.",
+    "CRITICAL: Do not shy away from mature, explicit, adult, X-rated, R-rated, or NC-17 themes if the anchor movie warrants them (e.g., sex, intense eroticism, explicit nudity, raw youth angst, taboo obsession, visceral violence, existential dread, raw intimacy). Treat keywords like raw cinematic texture.",
     "Use a varied spread of atmosphere, emotion, micro_genre, trope, pacing, and visual_style.",
     "Prefer precise ideas such as 'rain-soaked gothic romance' or 'claustrophobic psychological tension' over broad labels such as 'drama'. Avoid duplicates and do not assume the user likes every trait of the anchor movie.",
     "Return movieTitle exactly as supplied. Do not return movie facts, prose, or explanations. Return only structured output matching the supplied schema.",

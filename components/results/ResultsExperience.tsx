@@ -1,5 +1,8 @@
+import styles from "./results.module.css";
+import { cxModule } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import { RECOMMENDATION_COUNT } from "@/constants/limits";
 import type { InterviewPersonality } from "@/types/interview";
 import type {
 	RecommendationHandoffState,
@@ -23,7 +26,7 @@ export function getRecommendationMovies(
 		unique.push(item);
 	}
 
-	return unique.slice(0, 5);
+	return unique.slice(0, RECOMMENDATION_COUNT);
 }
 
 interface ResultsExperienceProps {
@@ -41,16 +44,16 @@ export function ResultsExperience({
 }: ResultsExperienceProps) {
 	const response = recommendation.status === "success" ? recommendation.response : null;
 	const movies = getRecommendationMovies(response);
-	const isCompleteSuccess = recommendation.status === "success" && movies.length === 5;
+	const isCompleteSuccess = recommendation.status === "success" && movies.length === RECOMMENDATION_COUNT;
 
 	return (
-		<div className="results-experience">
+		<div className={cxModule(styles, "results-experience")}>
 			{recommendation.status === "loading" ? (
-				<div className="recommendation-pending" role="status" aria-live="polite">
+				<div className={cxModule(styles, "recommendation-pending")} role="status" aria-live="polite">
 					<p className="type-label">From the projection booth</p>
 					<h2>Picking out your films.</h2>
 					<p>Your personal collection is being prepared.</p>
-					<div className="recommendation-pending__lines" aria-hidden="true">
+					<div className={cxModule(styles, "recommendation-pending__lines")} aria-hidden="true">
 						<span /><span /><span />
 					</div>
 				</div>
@@ -70,13 +73,13 @@ export function ResultsExperience({
 			) : null}
 
 			{recommendation.status === "success" ? (
-				<section className="movie-library" aria-labelledby="results-section-title">
-					<header className="movie-library__heading">
+				<section className={cxModule(styles, "movie-library")} aria-labelledby="results-section-title">
+					<header className={cxModule(styles, "movie-library__heading")}>
 						<div>
 							<p className="type-label">CURATED FOR YOUR NEXT MOVIE NIGHT</p>
 							<h2 id="results-section-title">Your film shelf.</h2>
 						</div>
-						<span className="movie-library__count">05 <span>FILMS</span></span>
+						<span className={cxModule(styles, "movie-library__count")}>{String(RECOMMENDATION_COUNT).padStart(2, "0")} <span>FILMS</span></span>
 					</header>
 
 					{!isCompleteSuccess ? (
@@ -86,7 +89,7 @@ export function ResultsExperience({
 							action={<Button variant="secondary" onClick={onRetryRecommendations}>Try again</Button>}
 						/>
 					) : (
-						<div className="movie-library__shelf">
+						<div className={cxModule(styles, "movie-library__shelf")}>
 							{movies.map((item, index) => (
 								<MovieCard
 									key={item.movie.tmdbId}
@@ -103,7 +106,7 @@ export function ResultsExperience({
 			<PersonalityCard personality={personality} />
 
 			{recommendation.status === "success" ? (
-				<div className="results-experience__reset">
+				<div className={cxModule(styles, "results-experience__reset")}>
 					<Button variant="ghost" onClick={onRetake}>Choose a different double feature</Button>
 				</div>
 			) : null}

@@ -1,9 +1,12 @@
 "use client";
 
+import styles from "./results.module.css";
+import { cxModule } from "@/lib/utils";
 import { useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 
 import type { RecommendationResponse } from "@/types/recommendation";
+import { getMovieGenreNames } from "@/constants/movie-genres";
 import { MovieArtwork } from "./MovieArtwork";
 
 interface MovieCardProps {
@@ -21,13 +24,6 @@ interface DragState {
 	moved: boolean;
 }
 
-const GENRE_NAMES: Record<number, string> = {
-	28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
-	99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
-	27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science fiction",
-	10770: "TV movie", 53: "Thriller", 10752: "War", 37: "Western",
-};
-
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 function releaseYear(releaseDate: string): string | null {
@@ -43,11 +39,11 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 	const suppressClick = useRef(false);
 	const year = releaseYear(movie.releaseDate);
 	const watchUrl = `https://vidlink.pro/movie/${movie.tmdbId}`;
-	const genres = movie.genreIds.map((id) => GENRE_NAMES[id]).filter(Boolean);
+	const genres = getMovieGenreNames(movie.genreIds);
 	const overview = movie.overview.trim();
 	const matchReason = reason.trim();
-	const caseClass = `dvd-case${isOpen ? " is-open" : ""}${isDragging ? " is-dragging" : ""}`;
-	const stageClass = `dvd-stage${isOpen ? " is-open" : ""}${isDragging ? " is-dragging" : ""}`;
+	const caseClass = cxModule(styles, `dvd-case${isOpen ? " is-open" : ""}${isDragging ? " is-dragging" : ""}`);
+	const stageClass = cxModule(styles, `dvd-stage${isOpen ? " is-open" : ""}${isDragging ? " is-dragging" : ""}`);
 
 	function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
 		if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
@@ -106,7 +102,7 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 	}
 
 	return (
-		<article className={`dvd-display${isOpen ? " dvd-display--open" : ""}`} style={{ animationDelay: `${index * 70}ms` }}>
+		<article className={cxModule(styles, `dvd-display${isOpen ? " dvd-display--open" : ""}`)} style={{ animationDelay: `${index * 70}ms` }}>
 			<div
 				className={stageClass}
 				style={{ "--dvd-rotate-x": `${rotationX}deg`, "--dvd-rotate-y": `${rotationY}deg` } as CSSProperties}
@@ -121,33 +117,33 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 				onClick={handleClick}
 				onKeyDown={handleKeyDown}
 			>
-				<div className="dvd-halo" aria-hidden="true" />
-				<div className="dvd-case-wrap">
+				<div className={cxModule(styles, "dvd-halo")} aria-hidden="true" />
+				<div className={cxModule(styles, "dvd-case-wrap")}>
 					<div className={caseClass} style={{ transform: "rotateX(var(--dvd-rotate-x)) rotateY(var(--dvd-rotate-y))" }}>
-						<section className="dvd-face dvd-back-cover" aria-label="Personalized recommendation reason">
-							<div className="dvd-bc-top">
-								<div className="dvd-bc-brand">MEDIAPULSE · YOUR FILM CLUB</div>
-								<div className="dvd-bc-title">WHY THIS MATCHES YOU</div>
+						<section className={cxModule(styles, "dvd-face dvd-back-cover")} aria-label="Personalized recommendation reason">
+							<div className={cxModule(styles, "dvd-bc-top")}>
+								<div className={cxModule(styles, "dvd-bc-brand")}>MEDIAPULSE · YOUR FILM CLUB</div>
+								<div className={cxModule(styles, "dvd-bc-title")}>WHY THIS MATCHES YOU</div>
 							</div>
-							<div className="dvd-bc-hero" aria-hidden="true" />
-							<p className="dvd-bc-synopsis">{matchReason || "A film selected with your preferences in mind."}</p>
-							<div className="dvd-bc-gloss" aria-hidden="true" />
+							<div className={cxModule(styles, "dvd-bc-hero")} aria-hidden="true" />
+							<p className={cxModule(styles, "dvd-bc-synopsis")}>{matchReason || "A film selected with your preferences in mind."}</p>
+							<div className={cxModule(styles, "dvd-bc-gloss")} aria-hidden="true" />
 						</section>
 
-						<div className="dvd-edge dvd-edge-left" aria-hidden="true">
-							<div className="dvd-spine-content">
-								<div className="dvd-spine-band" />
-								<div className="dvd-spine-title">{movie.title}</div>
-								<div className="dvd-spine-mark">DVD</div>
+						<div className={cxModule(styles, "dvd-edge dvd-edge-left")} aria-hidden="true">
+							<div className={cxModule(styles, "dvd-spine-content")}>
+								<div className={cxModule(styles, "dvd-spine-band")} />
+								<div className={cxModule(styles, "dvd-spine-title")}>{movie.title}</div>
+								<div className={cxModule(styles, "dvd-spine-mark")}>DVD</div>
 							</div>
 						</div>
-						<div className="dvd-edge dvd-edge-right" aria-hidden="true" />
-						<div className="dvd-edge dvd-edge-top" aria-hidden="true" />
-						<div className="dvd-edge dvd-edge-bottom" aria-hidden="true" />
+						<div className={cxModule(styles, "dvd-edge dvd-edge-right")} aria-hidden="true" />
+						<div className={cxModule(styles, "dvd-edge dvd-edge-top")} aria-hidden="true" />
+						<div className={cxModule(styles, "dvd-edge dvd-edge-bottom")} aria-hidden="true" />
 
-						<div className="dvd-tray" aria-label="DVD interior tray">
+						<div className={cxModule(styles, "dvd-tray")} aria-label="DVD interior tray">
 							<a
-								className="dvd-disc dvd-disc-link"
+								className={cxModule(styles, "dvd-disc dvd-disc-link")}
 								href={watchUrl}
 								target="_blank"
 								rel="noopener noreferrer"
@@ -157,30 +153,30 @@ export function MovieCard({ movie, reason, index }: MovieCardProps) {
 								onPointerDown={(event) => event.stopPropagation()}
 								onClick={(event) => event.stopPropagation()}
 							>
-								<div className="dvd-disc-label"><span>PLAY</span></div>
+								<div className={cxModule(styles, "dvd-disc-label")}><span>PLAY</span></div>
 							</a>
-							<div className="dvd-hub" aria-hidden="true" />
+							<div className={cxModule(styles, "dvd-hub")} aria-hidden="true" />
 						</div>
 
-						<div className="dvd-lid">
-							<div className="dvd-cover-front" aria-label={`${movie.title} poster`}>
-								<div className="dvd-poster">
-									<MovieArtwork title={movie.title} artworkPath={movie.posterPath} alt={`${movie.title} poster`} sizes="(max-width: 48rem) 42vw, 260px" className="dvd-poster-artwork" />
-									{movie.rating > 0 ? <span className="dvd-rating"><span aria-hidden="true">★</span> {movie.rating.toFixed(1)}</span> : null}
+						<div className={cxModule(styles, "dvd-lid")}>
+							<div className={cxModule(styles, "dvd-cover-front")} aria-label={`${movie.title} poster`}>
+								<div className={cxModule(styles, "dvd-poster")}>
+									<MovieArtwork title={movie.title} artworkPath={movie.posterPath} alt={`${movie.title} poster`} sizes="(max-width: 48rem) 42vw, 260px" className={cxModule(styles, "dvd-poster-artwork")} />
+									{movie.rating > 0 ? <span className={cxModule(styles, "dvd-rating")}><span aria-hidden="true">★</span> {movie.rating.toFixed(1)}</span> : null}
 								</div>
 							</div>
-							<div className="dvd-cover-inner" aria-label="Movie details">
-								<div className="dvd-inside-info">
+							<div className={cxModule(styles, "dvd-cover-inner")} aria-label="Movie details">
+								<div className={cxModule(styles, "dvd-inside-info")}>
 									<h3>{movie.title}</h3>
-									{year || genres.length ? <p className="dvd-metadata">{[year, ...genres].filter(Boolean).join(" · ")}</p> : null}
-									<p className="dvd-overview">{overview || "No overview is available for this film."}</p>
+									{year || genres.length ? <p className={cxModule(styles, "dvd-metadata")}>{[year, ...genres].filter(Boolean).join(" · ")}</p> : null}
+									<p className={cxModule(styles, "dvd-overview")}>{overview || "No overview is available for this film."}</p>
 								</div>
-								<div className="dvd-inner-emblem" aria-hidden="true" />
+								<div className={cxModule(styles, "dvd-inner-emblem")} aria-hidden="true" />
 							</div>
 						</div>
 					</div>
 				</div>
-				<span className="dvd-instruction" aria-hidden="true">Click or tap to open / close · Drag to rotate</span>
+				<span className={cxModule(styles, "dvd-instruction")} aria-hidden="true">Click or tap to open / close · Drag to rotate</span>
 			</div>
 		</article>
 	);

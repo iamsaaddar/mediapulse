@@ -1,9 +1,9 @@
 import { VerifiedMovieSchema } from "@/schemas/movie";
-import type { RecommendationCandidate } from "@/types/recommendation";
 import type { VerifiedMovie } from "@/types/movie";
-
 import { getMovieById, type TmdbMovieDetails } from "./movie";
 import { searchMovies, type TmdbSearchResult } from "./search";
+
+interface RecommendationCandidate { title: string; year: number | null; reason: string }
 
 function normalizeTitle(value: string): string {
 	return value

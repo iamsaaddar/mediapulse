@@ -21,8 +21,9 @@ class FakeGeminiClientError extends Error {
 	}
 }
 
-function loadTypeScript(relativePath, resolver = loadApplicationModule) {
-	const source = fs.readFileSync(path.join(root, relativePath), "utf8");
+function loadTypeScript(relativePath, resolver) {
+	const normalizedPath = relativePath.replaceAll("\\", "/");
+	const source = fs.readFileSync(path.join(root, normalizedPath), "utf8");
 	const javascript = ts.transpileModule(source, {
 		compilerOptions: {
 			module: ts.ModuleKind.CommonJS,
@@ -31,27 +32,19 @@ function loadTypeScript(relativePath, resolver = loadApplicationModule) {
 	}).outputText;
 	const loadedModule = { exports: {} };
 	new Function("require", "module", "exports", javascript)(
-		resolver,
+		resolver ?? ((moduleName) => loadApplicationModule(moduleName, normalizedPath)),
 		loadedModule,
 		loadedModule.exports,
 	);
 	return loadedModule.exports;
 }
 
-function loadApplicationModule(moduleName) {
+function loadApplicationModule(moduleName, parentPath = "") {
 	switch (moduleName) {
 		case "server-only":
 			return {};
 		case "zod":
 			return { z };
-		case "@/constants/limits":
-			return loadTypeScript("constants/limits.ts");
-		case "@/constants/taste-dimensions":
-			return loadTypeScript("constants/taste-dimensions.ts");
-		case "./common":
-			return loadTypeScript("schemas/common.ts");
-		case "@/schemas/interview":
-			return loadTypeScript("schemas/interview.ts");
 		case "@/lib/errors":
 			return loadTypeScript("lib/errors.ts");
 		case "@/lib/logger":
@@ -63,11 +56,17 @@ function loadApplicationModule(moduleName) {
 					]),
 				),
 			};
-		case "./interview-prompt":
-			return loadTypeScript("services/gemini/interview-prompt.ts");
-		default:
-			throw new Error(`Unexpected interview-service dependency: ${moduleName}`);
 	}
+	if (moduleName.startsWith("@/")) {
+		return loadTypeScript(`${moduleName.slice(2)}.ts`);
+	}
+	if (moduleName.startsWith(".")) {
+		const resolved = path.posix.normalize(
+			path.posix.join(path.posix.dirname(parentPath), moduleName),
+		);
+		return loadTypeScript(`${resolved}.ts`);
+	}
+	throw new Error(`Unexpected interview-service dependency: ${moduleName}`);
 }
 
 function createService(providerResult) {
@@ -88,7 +87,7 @@ function createService(providerResult) {
 					getGeminiClient: () => client,
 				};
 			}
-			return loadApplicationModule(moduleName);
+			return loadApplicationModule(moduleName, "services/gemini/interview.ts");
 		},
 	);
 	return { runInterview: service.runInterview, calls };
@@ -98,6 +97,14 @@ function createRequest(questionCount = 0) {
 	return {
 		questionCount,
 		tasteProfile: { signals: [], likes: [], dislikes: [] },
+		preferences: {
+			anchorMovie: "Arrival",
+			anchorNote: "I like the literary adaptation and quiet, thoughtful story.",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
+		},
 		lastInteraction: questionCount === 0 ? null : {
 			question: {
 				id: questionCount === 1 ? "favorite-movie" : "previous-question",
@@ -110,6 +117,19 @@ function createRequest(questionCount = 0) {
 			answer: "I enjoy thoughtful, character-driven stories.",
 		},
 	};
+}
+
+function assertPromptContainsRequestState(prompt, request) {
+	const marker = "CURRENT COMPACT INTERVIEW STATE (JSON):\n\n";
+	const stateStart = prompt.indexOf(marker);
+	assert.notEqual(stateStart, -1);
+	const state = JSON.parse(prompt.slice(stateStart + marker.length));
+	assert.deepEqual(state, {
+		questionCount: request.questionCount,
+		preferences: { ...request.preferences, selectedGenres: [] },
+		tasteProfile: request.tasteProfile,
+		lastInteraction: request.lastInteraction,
+	});
 }
 
 function createContinueResult() {
@@ -174,24 +194,25 @@ function collectSchemaNodes(schema, nodes = []) {
 	return nodes;
 }
 
-test("first turn always returns the fixed opening without calling Gemini", async () => {
-	const service = createService(new Error("Gemini must not be called for the opening"));
-	const expected = {
-		status: "continue",
-		question: {
-			id: "favorite-movie",
-			text: "What is your favorite movie of all time?",
-			required: true,
-			type: "free_text",
-		},
-		tasteUpdate: { signals: [], likes: [], dislikes: [] },
-		confidence: { overall: 0 },
-	};
+test("first turn sends the compact preference state to Gemini and validates its response", async () => {
+	const expected = createContinueResult();
+	const request = createRequest();
+	const service = createService(expected);
 
-	assert.deepEqual(await service.runInterview(createRequest()), expected);
-	assert.deepEqual(await service.runInterview(createRequest()), expected);
-	assert.equal(service.calls.length, 0);
+	assert.deepEqual(await service.runInterview(request), expected);
+	assert.equal(service.calls.length, 1);
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
 	assert.equal(InterviewResponseSchema.safeParse(expected).success, true);
+});
+
+test("interview prompt receives the user's anchor note as explicit taste context", async () => {
+	const request = createRequest();
+	request.preferences.anchorNote = "I love that Arrival explores language and ideas more than action.";
+	const service = createService(createContinueResult());
+	await service.runInterview(request);
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
+	assert.ok(service.calls[0].prompt.includes(request.preferences.anchorNote));
+	assert.match(service.calls[0].prompt, /anchorNote.*explicit, high-priority explanation/i);
 });
 
 test("Gemini structured-output schema retains the established response contract", async () => {
@@ -202,7 +223,7 @@ test("Gemini structured-output schema retains the established response contract"
 	assert.deepEqual(await service.runInterview(request), result);
 	assert.equal(service.calls.length, 1);
 	assert.match(service.calls[0].prompt, /CURRENT COMPACT INTERVIEW STATE/);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
 	assert.ok(service.calls[0].prompt.includes("MediaPulse Movie Taste Interviewer"));
 	assert.equal(service.calls[0].schema.type, undefined);
 	assert.ok(Array.isArray(service.calls[0].schema.anyOf));
@@ -256,13 +277,20 @@ test("Gemini structured-output schema retains the established response contract"
 
 test("subsequent turns include the latest profile and interaction", async () => {
 	const request = {
-		questionCount: 6,
+		questionCount: 2,
 		tasteProfile: {
 			signals: [
 				{ dimension: "pacing", value: "slow, atmospheric", confidence: 0.9 },
 			],
 			likes: ["patient storytelling"],
 			dislikes: ["abrupt tonal shifts"],
+		},
+		preferences: {
+			anchorMovie: "Arrival",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
 		},
 		lastInteraction: {
 			question: {
@@ -279,10 +307,10 @@ test("subsequent turns include the latest profile and interaction", async () => 
 	await service.runInterview(request);
 
 	assert.equal(service.calls.length, 1);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
 });
 
-test("title-only favorite-movie answer reaches Gemini for an adaptive follow-up", async () => {
+test("the current free-text answer reaches Gemini for an adaptive follow-up", async () => {
 	const request = createRequest(1);
 	request.lastInteraction.answer = "Arrival";
 	const followUp = createContinueResult();
@@ -292,7 +320,7 @@ test("title-only favorite-movie answer reaches Gemini for an adaptive follow-up"
 
 	assert.deepEqual(await service.runInterview(request), followUp);
 	assert.equal(service.calls.length, 1);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
 	assert.equal(
 		service.calls[0].prompt.includes("Arrival"),
 		true,
@@ -300,7 +328,7 @@ test("title-only favorite-movie answer reaches Gemini for an adaptive follow-up"
 	);
 });
 
-test("favorite-movie explanation is preserved as evidence for the next turn", async () => {
+test("the user's explanation is preserved as evidence for the next turn", async () => {
 	const request = createRequest(1);
 	request.lastInteraction.answer =
 		"Arrival — I love how its quiet atmosphere builds toward an emotional, hopeful ending.";
@@ -309,11 +337,11 @@ test("favorite-movie explanation is preserved as evidence for the next turn", as
 	await service.runInterview(request);
 
 	assert.equal(service.calls.length, 1);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
 	assert.ok(service.calls[0].prompt.includes(request.lastInteraction.answer));
 });
 
-test("ambiguous movie titles can be clarified without adding unsupported details", async () => {
+test("an ambiguous movie title reaches Gemini without unsupported profile assumptions", async () => {
 	const request = createRequest(1);
 	request.lastInteraction.answer = "The Fall";
 	const clarification = createContinueResult();
@@ -323,11 +351,11 @@ test("ambiguous movie titles can be clarified without adding unsupported details
 
 	assert.deepEqual(await service.runInterview(request), clarification);
 	assert.equal(service.calls.length, 1);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
-	assert.match(service.calls[0].prompt, /unfamiliar or ambiguous[\s\S]*?do not fabricate details/i);
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
+	assert.match(service.calls[0].prompt, /anchor movie is context only\. Never assume the user likes every characteristic/i);
 });
 
-test("vague favorite-movie answers are passed through for a polite clarification", async () => {
+test("vague answers reach Gemini with instructions to clarify politely", async () => {
 	const request = createRequest(1);
 	request.lastInteraction.answer = "I'm not sure—maybe something emotional.";
 	const clarification = createContinueResult();
@@ -337,8 +365,8 @@ test("vague favorite-movie answers are passed through for a polite clarification
 
 	assert.deepEqual(await service.runInterview(request), clarification);
 	assert.equal(service.calls.length, 1);
-	assert.ok(service.calls[0].prompt.includes(JSON.stringify(request)));
-	assert.match(service.calls[0].prompt, /answer is vague or does not identify a movie[\s\S]*?clarifying question/i);
+	assertPromptContainsRequestState(service.calls[0].prompt, request);
+	assert.match(service.calls[0].prompt, /If the user gives a vague, uncertain, or unhelpful answer[\s\S]*?ask a simpler or more concrete question/i);
 });
 
 test("accepts a valid completion result using the established schema", async () => {
@@ -383,8 +411,8 @@ test("oversized completion profile logs exact safe path and count without loggin
 	);
 });
 
-test("application rejects completion before five answered questions", async () => {
-	for (const questionCount of [1, 4]) {
+test("application rejects completion before the two-question minimum", async () => {
+	for (const questionCount of [0, 1]) {
 		const service = createService(createCompleteResult());
 		await assert.rejects(
 			service.runInterview(createRequest(questionCount)),
@@ -396,7 +424,7 @@ test("application rejects completion before five answered questions", async () =
 });
 
 test("application allows completion at the minimum and maximum question counts", async () => {
-	for (const questionCount of [5, 10]) {
+	for (const questionCount of [2, 5]) {
 		const service = createService(createCompleteResult());
 		const result = await service.runInterview(createRequest(questionCount));
 		assert.equal(result.status, "complete");
@@ -404,10 +432,10 @@ test("application allows completion at the minimum and maximum question counts",
 	}
 });
 
-test("application prevents continuing beyond the ten-question maximum", async () => {
+test("application prevents continuing at the five-question maximum", async () => {
 	const service = createService(createContinueResult());
 	await assert.rejects(
-		service.runInterview(createRequest(10)),
+		service.runInterview(createRequest(5)),
 		(error) => error.code === "AI_SERVICE_ERROR" && error.statusCode === 502,
 	);
 	assert.equal(service.calls.length, 1);
@@ -530,7 +558,7 @@ test("request question count and state consistency remain bounded by the existin
 		},
 		answer: "A useful answer.",
 	};
-	for (const questionCount of [1, 10]) {
+	for (const questionCount of [1, 5]) {
 		assert.equal(
 			InterviewRequestSchema.safeParse({
 				...createRequest(),
@@ -540,7 +568,7 @@ test("request question count and state consistency remain bounded by the existin
 			true,
 		);
 	}
-	for (const questionCount of [-1, 11, 1.5]) {
+	for (const questionCount of [-1, 6, 1.5]) {
 		assert.equal(
 			InterviewRequestSchema.safeParse({
 				...createRequest(),

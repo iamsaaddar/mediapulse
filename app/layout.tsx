@@ -3,9 +3,9 @@ import { SiteHeader } from "@/components/ui/SiteHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MediaPulse — Your Next Great Story",
+  title: "MediaPulse — Find your next favorite film",
   description:
-    "Tell us what moves you. MediaPulse finds the film that feels like it was made for tonight.",
+    "A personal film discovery, guided by the stories you love.",
 };
 
 export default function RootLayout({

@@ -20,7 +20,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 const buttonClasses = [
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 py-2.5",
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-none px-5 py-2.5",
   "text-sm font-medium motion-button",
   "focus-visible:outline-2 focus-visible:outline-offset-3",
   "disabled:pointer-events-none disabled:opacity-50",

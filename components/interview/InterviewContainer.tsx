@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./interview.module.css";
+import { cxModule } from "@/lib/utils";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Button } from "@/components/ui/Button";
 import { getAvailableInterviewQuestions } from "@/lib/interview-limits";
@@ -53,19 +55,19 @@ export function InterviewContainer({
 
 	return (
 		<section
-			className="interview-shell mx-auto w-full max-w-3xl"
+			className={cxModule(styles, "interview-shell mx-auto w-full max-w-3xl")}
 			role="group"
 			aria-label={isCompleted ? "Interview completion" : "Interview"}
 			aria-busy={isPending || undefined}
 		>
 			{question ? (
-				<div className="interview-shell__content">
+				<div className={cxModule(styles, "interview-shell__content")}>
 					<ProgressIndicator
 						currentQuestion={state.currentQuestion}
 						questions={questions}
 						answeredCount={state.questionCount}
 					/>
-					<div key={question.id} className="interview-question motion-question-enter">
+					<div key={question.id} className={cxModule(styles, "interview-question motion-question-enter")}>
 						<QuestionRenderer
 							question={question}
 							answer={answer}
@@ -80,11 +82,11 @@ export function InterviewContainer({
 					/>
 				</div>
 			) : isPending ? (
-				<p className="interview-waiting" role="status" aria-live="polite">
+				<p className={cxModule(styles, "interview-waiting")} role="status" aria-live="polite">
 					{state.questionCount === 0 ? "Setting the scene…" : "Finding your next question…"}
 				</p>
 			) : (
-				<div className="interview-error">
+				<div className={cxModule(styles, "interview-error")}>
 					{errorMessage ? (
 						<ErrorMessage
 							message={errorMessage}

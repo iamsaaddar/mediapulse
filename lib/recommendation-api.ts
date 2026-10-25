@@ -14,7 +14,7 @@ const SAFE_ERROR_MESSAGES: Record<string, string> = {
 	INVALID_REQUEST: "Your completed interview could not be used. Please try again.",
 	AI_SERVICE_ERROR: "The recommendation service is temporarily unavailable. Please try again.",
 	MOVIE_DATA_ERROR: "The movie data service is temporarily unavailable. Please try again.",
-	INSUFFICIENT_RESULTS: "We could not find five strong matches that meet your filters. Try broadening your decades or languages and try again.",
+	INSUFFICIENT_RESULTS: "We are still gathering verified movies for your collection. Please try again shortly.",
 	RATE_LIMITED: "The recommendation service is busy. Please try again shortly.",
 	INTERNAL_ERROR: "The recommendation service is temporarily unavailable. Please try again.",
 };

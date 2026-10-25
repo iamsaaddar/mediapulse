@@ -1,5 +1,8 @@
 "use client";
 
+import styles from "./results.module.css";
+import { cxModule } from "@/lib/utils";
+
 import { useRef, useState } from "react";
 import type {
 	CSSProperties,
@@ -99,10 +102,10 @@ export function PersonalityCard({ personality }: PersonalityCardProps) {
 	}
 
 	return (
-		<section className="personality-display" aria-labelledby="personality-card-label">
+		<section className={cxModule(styles, "personality-display")} aria-labelledby="personality-card-label">
 			<p id="personality-card-label" className="type-label">Your moviegoer ID</p>
 			<div
-				className={`personality-card-stage${isDragging ? " personality-card-stage--dragging" : ""}`}
+				className={cxModule(styles, `personality-card-stage${isDragging ? " personality-card-stage--dragging" : ""}`)}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
@@ -124,28 +127,28 @@ export function PersonalityCard({ personality }: PersonalityCardProps) {
 				aria-pressed={isRevealed}
 				aria-label={`Moviegoer ID card, ${isRevealed ? "personality revealed" : "profile hidden"}. Click or drag to turn.`}
 			>
-				<div className={`personality-card${isDragging ? " personality-card--dragging" : ""}`}>
-					<div className="personality-card__face personality-card__front">
-						<span className="personality-card__brand">
-							<span className="personality-card__seal" aria-hidden="true">✳</span>
+				<div className={cxModule(styles, `personality-card${isDragging ? " personality-card--dragging" : ""}`)}>
+					<div className={cxModule(styles, "personality-card__face personality-card__front")}>
+						<span className={cxModule(styles, "personality-card__brand")}>
+							<span className={cxModule(styles, "personality-card__seal")} aria-hidden="true">✳</span>
 							MEDIA PULSE <span>PICTURE HOUSE</span>
 						</span>
-						<span className="personality-card__portrait" aria-hidden="true">MP</span>
-						<span className="personality-card__member">
+						<span className={cxModule(styles, "personality-card__portrait")} aria-hidden="true">MP</span>
+						<span className={cxModule(styles, "personality-card__member")}>
 							<span>MOVIEGOER</span>
 							<strong>MEMBER</strong>
 						</span>
-						<span className="personality-card__tap" aria-hidden="true">✳</span>
+						<span className={cxModule(styles, "personality-card__tap")} aria-hidden="true">✳</span>
 					</div>
-					<div className="personality-card__face personality-card__back">
-						<span className="personality-card__brand">YOUR CINEMATIC PERSONALITY</span>
+					<div className={cxModule(styles, "personality-card__face personality-card__back")}>
+						<span className={cxModule(styles, "personality-card__brand")}>YOUR CINEMATIC PERSONALITY</span>
 						<strong>{personality.title}</strong>
-						<span className="personality-card__description">{personality.description}</span>
-						<span className="personality-card__tap">YOUR MOVIEGOER PROFILE <span aria-hidden="true">✳</span></span>
+						<span className={cxModule(styles, "personality-card__description")}>{personality.description}</span>
+						<span className={cxModule(styles, "personality-card__tap")}>YOUR MOVIEGOER PROFILE <span aria-hidden="true">✳</span></span>
 					</div>
 				</div>
 			</div>
-			<div className="personality-card-controls">
+			<div className={cxModule(styles, "personality-card-controls")}>
 				<button
 					type="button"
 					aria-pressed={isRevealed}

@@ -29,3 +29,15 @@ export const VerifiedMovieSchema = z.object({
 
 	originalLanguage: boundedNonBlankText(MAX_MOVIE_LANGUAGE_LENGTH),
 }).strict();
+
+export const DiscoveredMovieSchema = z.object({
+	tmdbId: z.number().int().positive(),
+	title: boundedNonBlankText(MAX_MOVIE_TITLE_LENGTH),
+	originalTitle: boundedNonBlankText(MAX_MOVIE_TITLE_LENGTH),
+	releaseDate: z.string().max(MAX_MOVIE_RELEASE_DATE_LENGTH),
+	overview: z.string().max(MAX_MOVIE_OVERVIEW_LENGTH),
+	posterPath: z.string().max(MAX_MOVIE_IMAGE_PATH_LENGTH).nullable(),
+	backdropPath: z.string().max(MAX_MOVIE_IMAGE_PATH_LENGTH).nullable(),
+	genreIds: z.array(z.number().int().positive()).max(MAX_MOVIE_GENRES),
+	originalLanguage: boundedNonBlankText(MAX_MOVIE_LANGUAGE_LENGTH),
+}).strict();

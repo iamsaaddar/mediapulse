@@ -1,52 +1,52 @@
-# MediaPulse process roadmap
+# MediaPulse backend process roadmap
 
-This describes the current anchor-to-results flow implemented by the app.
+This document describes the implemented anchor-to-results backend flow.
 
 ```text
-Anchor movie title
-  -> POST /api/vibes
-  -> Gemini returns 10–15 granular vibe keywords
-  -> user selects vibes, decades, and original languages
-  -> POST /api/interview for each short adaptive turn
-  -> Gemini builds a taste profile in the selected vibe scope
-  -> POST /api/recommendations
-  -> Gemini proposes 7–8 candidates per batch with fit estimates
-  -> TMDB verifies identities and supplies authoritative metadata
-  -> server applies decade/language filters and fit/discovery ranking
-  -> exactly five distinct verified recommendations
+Anchor movie
+  -> Gemini extracts granular vibe keywords
+  -> user selects vibes, optional TMDB genres, decades, and languages
+  -> Gemini runs a short adaptive interview inside those choices
+  -> recommendation request contains interview taste profile + filters
+  -> Gemini creates a typed discovery plan (search concepts and lanes)
+  -> backend validates the plan and resolves keyword concepts using TMDB
+  -> bounded, multi-lane TMDB Discover requests build a candidate pool
+  -> backend deduplicates and re-applies the user's hard filters
+  -> Gemini selects exactly seven IDs from that pool and explains each fit
+  -> backend verifies the seven IDs/details against TMDB and returns them
 ```
 
-## 1. Vibe extraction and preference selection
+## Taste profile and interview
 
-The browser sends the entered title to `POST /api/vibes`. The server validates it, calls Gemini with the title as the sole extraction input, validates 10–15 distinct structured keywords, and returns them with a category: atmosphere, emotion, micro-genre, trope, pacing, or visual style. The user selects one or more tags.
+The quiz begins with an anchor movie and an optional note explaining what the user values about it, then obtains vibe tags through `/api/vibes`. The note stays with the movie in `preferences.anchorNote`; it is sent on every interview turn and with the final recommendation request. The app also preserves it in the taste profile's likes so later Gemini updates cannot accidentally drop the explicit preference. The user selects vibes, may select one or more of TMDB's movie genres, and may choose decades and original-language codes. Interview answers update structured likes, dislikes, signals, confidence, and personality. The client holds the interview state; there is no account or persistent recommendation history.
 
-The setup also offers multi-select decades from the 1940s through the 2020s and supported original languages. Empty decade or language selections mean Any Era or Any Language. The resulting preference state contains the anchor, selected vibe objects, decades, and language codes. It travels in every interview and recommendation request; no database or account is added.
+The recommendation endpoint receives that completed state through `/api/recommendations`. The anchor title is context; the optional anchor note states what the user wants MediaPulse to understand about it, and is preserved in both preferences and the evolving taste profile. The selected vibes and interview profile also express taste. Genre, decade, and language selections remain authoritative hard constraints. A movie must contain every selected genre ID (AND semantics across selections); additional genres are allowed. Each selected decade is considered as its own era, and an explicitly selected language must match TMDB's `original_language`. An empty filter means no restriction for that dimension.
 
-## 2. Adaptive micro-interview
+## Discovery plan and translation
 
-The browser sends `POST /api/interview` with the preference state, current profile, answer count, and latest interaction. On the first turn there is no interaction; Gemini generates the first targeted question. Subsequent turns include the latest question and answer plus Gemini’s updated taste profile.
+`services/gemini/recommendations.ts` asks Gemini for a structured plan validated by `schemas/discovery.ts`. A plan contains one to eight lanes and must include a usable core-taste lane. Additional thematic, international, era, or adjacent lanes are included when supported by the profile. It contains only TMDB genre names, supported language codes, known decade values, and natural-language keyword concepts; Gemini does not supply catalog IDs, URLs, or API parameters.
 
-The prompt treats selected vibe tags as the interview’s scope, treats the anchor only as context, and says not to question or weaken decade and language constraints. Structured responses are validated with Zod. The application requires at least two answered questions before completion and enforces a maximum of five. It asks for completion at the cap, rejects continuation beyond it, and starts recommendations automatically when a valid completion arrives.
+`services/recommendations/discovery-plan.ts` maps genre names to the static TMDB genre catalog. If the user selected genres, all selected genre IDs are preserved as required AND criteria; Gemini cannot narrow or replace them. TMDB `/discover/movie` receives the IDs comma-separated, which applies AND semantics. It creates alternative query combinations for exploratory criteria instead of requiring every keyword to match together. User-selected decades and languages override exploratory values from the plan, then each decade, language, and keyword concept becomes a separate query alternative where needed. Each keyword concept is independently resolved by `services/tmdb/keywords.ts` using TMDB `/search/keyword`; only an exact catalog label match is used, and unresolved concepts are skipped. No invented keyword IDs are sent to Discover.
 
-Interview state remains in the browser. The API receives compact state on each request and does not persist a transcript.
+## Candidate pool, limits, and selection
 
-## 3. Candidate generation and anti-popularity selection
+`services/tmdb/discover.ts` calls `/discover/movie` with supported genre, keyword, original-language, release-date, and page parameters. Each request uses one decade and one original language at most; multiple selected values are handled through separate alternatives. Equivalent filter sets are deduplicated even when their lane labels or sort order differ. Every query explicitly sorts by release date or original title; it does not sort by popularity, vote count, or rating. The orchestrator interleaves complementary lanes, pages within a bounded request budget (24 TMDB discovery calls, at most six pages per planned query), deduplicates by TMDB ID, and targets roughly 100 candidates up to a cap of 160. It retains each candidate's discovery strategies, matched criteria, and resolved TMDB keyword concepts in memory for Gemini's candidate summaries and diagnostic logging.
 
-The recommendation request contains the final taste profile, selected preferences, confidence, and personality. Gemini returns 7–8 candidates per batch, each with a title, optional year, personalized reason, and a 0–1 taste-fit estimate. The prompt emphasizes the selected vibe space and actively seeks aesthetic matches beyond mainstream titles.
+The backend rechecks selected genres, decades, and languages against candidate metadata. If the bounded search returns fewer than seven eligible films, it returns the existing safe insufficient-results state instead of weakening a selected filter or padding with arbitrary films. TMDB details are fetched only for Gemini's final seven.
 
-The orchestrator permits two batches, deduplicates candidate titles, and uses the existing conservative TMDB title/year matching before fetching movie details. It discards any verified movie outside selected decades or original languages. When a filter is active, missing release year or language metadata cannot pass it.
+Gemini receives the profile and compact summaries from the eligible candidate pool (ID, canonical title, year/date, overview, genres, language). The selection schema requires exactly seven distinct IDs and personalized reasons. Application code checks every ID against the supplied pool and retries once if the output is malformed or contains an outside ID. It then fetches canonical TMDB details for the selected IDs and rechecks the hard filters. Ratings and vote counts may be returned to the existing display card from TMDB details, but they are not sent to Gemini or used for eligibility, ordering, or selection.
 
-The application ranks eligible candidates using equal weights for Gemini’s taste-fit estimate and a discovery score derived from log-normalized TMDB vote count. Up to three places are reserved for high-fit movies with fewer than 2,500 votes when enough qualify; the remaining places are filled by the combined score. Popularity does not act as a positive relevance score. Candidates below a 0.55 fit estimate are not selected.
+The backend has no cross-request history, so it prevents repeats within a response but cannot avoid a movie recommended during a previous session. No database or paid API was added.
 
-Success returns exactly five distinct verified movies, preserving each candidate’s personalized reason and combining it with TMDB metadata. If five strong matches cannot satisfy the selected filters, the API returns an insufficient-results error and the UI suggests broadening filters; constraints are not silently relaxed.
-
-## 4. Main code map
+## Main code map
 
 | Responsibility | Entry points |
 | --- | --- |
-| Anchor, vibe, and filter UI | `app/quiz/page.tsx`, `components/interview/PreferenceSetup.tsx` |
-| Vibe API and Gemini extraction | `app/api/vibes/route.ts`, `lib/vibes-api.ts`, `services/gemini/vibes.ts`, `schemas/vibes.ts` |
-| Interview API and short-turn policy | `app/api/interview/route.ts`, `services/gemini/interview.ts`, `services/gemini/interview-prompt.ts`, `schemas/interview.ts` |
-| Recommendation API and candidate ranking | `app/api/recommendations/route.ts`, `services/gemini/recommendations.ts`, `services/recommendations/orchestrator.ts`, `services/recommendations/ranking.ts` |
-| TMDB identity and metadata | `services/tmdb/search.ts`, `services/tmdb/verify.ts`, `services/tmdb/movie.ts` |
-| Preference and output contracts | `schemas/preferences.ts`, `schemas/recommendations.ts`, `schemas/movie.ts`, `constants/preferences.ts` |
+| Vibes and preference UI | `app/api/vibes/route.ts`, `services/gemini/vibes.ts`, `components/interview/PreferenceSetup.tsx` |
+| Adaptive interview | `app/api/interview/route.ts`, `services/gemini/interview.ts`, `services/gemini/interview-prompt.ts` |
+| Recommendation API | `app/api/recommendations/route.ts`, `services/recommendations/orchestrator.ts` |
+| Gemini discovery plan and final selection | `services/gemini/recommendations.ts`, `services/gemini/recommendation-prompt.ts`, `schemas/discovery.ts`, `schemas/recommendations.ts` |
+| Taste-to-TMDB translation | `services/recommendations/discovery-plan.ts`, `constants/movie-genres.ts`, `constants/preferences.ts` |
+| TMDB discovery and keyword resolution | `services/tmdb/discover.ts`, `services/tmdb/keywords.ts`, `services/tmdb/client.ts` |
+| Canonical movie metadata | `services/tmdb/movie.ts`, `schemas/movie.ts` |
+| Tests | `services/recommendations/pipeline.test.mjs`, `services/tmdb/discover.test.mjs`, `schemas/discovery.test.mjs`, `schemas/recommendations.test.mjs` |

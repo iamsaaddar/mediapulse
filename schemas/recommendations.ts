@@ -1,13 +1,8 @@
 import { z } from "zod";
 
 import {
-	MAX_CANDIDATE_TITLE_LENGTH,
-	MAX_RECOMMENDATION_CANDIDATES,
 	MAX_RECOMMENDATION_REASON_LENGTH,
 	MAX_TASTE_SIGNALS,
-	MIN_MOVIE_YEAR,
-	MIN_RECOMMENDATION_CANDIDATES,
-	MAX_MOVIE_YEAR,
 	RECOMMENDATION_COUNT,
 } from "@/constants/limits";
 import {
@@ -20,24 +15,19 @@ import { InterviewPersonalitySchema } from "./interview";
 import { VerifiedMovieSchema } from "./movie";
 import { PreferenceSelectionSchema } from "./preferences";
 
-export const RecommendationCandidateSchema = z.object({
-	title: boundedNonBlankText(MAX_CANDIDATE_TITLE_LENGTH),
-	year: z.number().int().min(MIN_MOVIE_YEAR).max(MAX_MOVIE_YEAR).nullable(),
-	reason: boundedNonBlankText(MAX_RECOMMENDATION_REASON_LENGTH),
-	fitScore: z.number().min(0).max(1),
-}).strict();
+export const GeminiRecommendationSelectionSchema = z.object({
+	selections: z.array(z.object({
+		tmdbId: z.number().int().positive(),
+		reason: boundedNonBlankText(MAX_RECOMMENDATION_REASON_LENGTH),
+	}).strict()).length(RECOMMENDATION_COUNT),
+}).strict().superRefine((data, context) => {
+	const ids = data.selections.map(({ tmdbId }) => tmdbId);
+	if (new Set(ids).size !== ids.length) {
+		context.addIssue({ code: "custom", path: ["selections"], message: "Selection IDs must be unique." });
+	}
+});
 
-export const GeminiRecommendationOutputSchema = z.object({
-	candidates: z
-		.array(RecommendationCandidateSchema)
-		.min(MIN_RECOMMENDATION_CANDIDATES)
-		.max(MAX_RECOMMENDATION_CANDIDATES),
-}).strict();
-
-export const RecommendationConfidenceSchema = z.object({
-	overall: ConfidenceSchema,
-}).strict();
-
+export const RecommendationConfidenceSchema = z.object({ overall: ConfidenceSchema }).strict();
 export const RecommendationPersonalitySchema = InterviewPersonalitySchema;
 export const PersonalitySchema = InterviewPersonalitySchema;
 
@@ -57,20 +47,10 @@ export const RecommendedMovieItemSchema = z.object({
 
 export const RecommendationResponseSchema = z.object({
 	personality: InterviewPersonalitySchema,
-	recommendations: z
-		.array(RecommendedMovieItemSchema)
-		.length(RECOMMENDATION_COUNT),
+	recommendations: z.array(RecommendedMovieItemSchema).length(RECOMMENDATION_COUNT),
 }).strict().superRefine((data, context) => {
-	const seenTmdbIds = new Set<number>();
-	for (let i = 0; i < data.recommendations.length; i++) {
-		const tmdbId = data.recommendations[i].movie.tmdbId;
-		if (seenTmdbIds.has(tmdbId)) {
-			context.addIssue({
-				code: "custom",
-				path: ["recommendations", i, "movie", "tmdbId"],
-				message: `Duplicate movie recommendation with TMDB ID ${tmdbId}.`,
-			});
-		}
-		seenTmdbIds.add(tmdbId);
+	const ids = data.recommendations.map(({ movie }) => movie.tmdbId);
+	if (new Set(ids).size !== ids.length) {
+		context.addIssue({ code: "custom", path: ["recommendations"], message: "Recommendation IDs must be unique." });
 	}
 });

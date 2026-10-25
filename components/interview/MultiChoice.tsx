@@ -1,3 +1,5 @@
+import styles from "./interview.module.css";
+import { cxModule } from "@/lib/utils";
 import type { MultiChoiceQuestion as MultiChoiceQuestionModel } from "@/types/interview";
 
 interface MultiChoiceProps {
@@ -25,23 +27,23 @@ export function MultiChoice({
 
 	return (
 		<fieldset
-			className="interview-options"
+			className={cxModule(styles, "interview-options")}
 			aria-required={question.required || undefined}
 			aria-invalid={question.required && value.length === 0 ? true : undefined}
 			aria-describedby={`${question.id}-instruction ${feedbackId}`}
 		>
-			<legend className="interview-question__prompt">{question.text}</legend>
-			<p id={`${question.id}-instruction`} className="interview-question__instruction">
+			<legend className={cxModule(styles, "interview-question__prompt")}>{question.text}</legend>
+			<p id={`${question.id}-instruction`} className={cxModule(styles, "interview-question__instruction")}>
 				Choose all that apply{question.required ? " · select at least one" : " · optional"}
 			</p>
 			{question.options.map((option) => (
 				<label
 					key={option.id}
-					className={`interview-option motion-selectable ${
+					className={cxModule(styles, `interview-option motion-selectable ${
 						value.includes(option.value)
 							? "interview-option--selected"
 							: ""
-					}`}
+					}`)}
 				>
 					<input
 						type="checkbox"
@@ -52,8 +54,8 @@ export function MultiChoice({
 						onChange={(event) => toggleOption(option.value, event.target.checked)}
 						className="accent-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
 					/>
-					<span className="interview-option__label">{option.label}</span>
-					<span className="interview-option__check" aria-hidden="true">
+					<span className={cxModule(styles, "interview-option__label")}>{option.label}</span>
+					<span className={cxModule(styles, "interview-option__check")} aria-hidden="true">
 						{value.includes(option.value) ? "✓" : ""}
 					</span>
 				</label>

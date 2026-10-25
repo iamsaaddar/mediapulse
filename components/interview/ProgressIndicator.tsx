@@ -1,3 +1,5 @@
+import styles from "./interview.module.css";
+import { cxModule } from "@/lib/utils";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { MAX_QUESTIONS } from "@/constants/limits";
 
@@ -29,7 +31,7 @@ export function ProgressIndicator({
 	const stage = getStage(progress / 100);
 
 	return (
-		<div className="interview-progress" aria-live="polite">
+		<div className={cxModule(styles, "interview-progress")} aria-live="polite">
 			<div className="flex items-center justify-between gap-4">
 				<p className="type-label text-muted">Question {currentPosition} <span aria-hidden="true">/</span> up to {MAX_QUESTIONS}</p>
 				<p className="text-sm font-medium text-foreground">{stage}</p>

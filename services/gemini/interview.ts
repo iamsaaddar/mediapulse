@@ -5,6 +5,7 @@ import {
 	getGeminiClient,
 } from "@/services/gemini/client";
 import { MAX_QUESTIONS, MIN_QUESTIONS } from "@/constants/limits";
+import { getMovieGenreNames } from "@/constants/movie-genres";
 import { InterviewResponseSchema } from "@/schemas/interview";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -89,7 +90,10 @@ const interviewResponseSchema = toGeminiSchema(
 function buildInterviewPrompt(request: InterviewRequest): string {
 	const state = {
 		questionCount: request.questionCount,
-		preferences: request.preferences,
+		preferences: {
+			...request.preferences,
+			selectedGenres: getMovieGenreNames(request.preferences.genreIds ?? []),
+		},
 		tasteProfile: request.tasteProfile,
 		lastInteraction: request.lastInteraction,
 	};

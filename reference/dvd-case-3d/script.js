@@ -31,7 +31,6 @@
 
   /* ------------------------------ state ------------------------ */
   var view = { yaw: 0, pitch: BASE_TILT };
-  var isOpen = false;
   var drag = null;
 
   /* ---------------------------- helpers ------------------------ */
@@ -60,7 +59,6 @@
 
   /* Open / close the lid. Purely a class flip — CSS owns the hinge. */
   function setOpen(open) {
-    isOpen = open;
     caseEl.classList.toggle("is-open", open);
     stage.classList.toggle("is-open", open);
     btnOpen.disabled = open;
@@ -84,7 +82,7 @@
     stage.classList.add("is-dragging");
 
     if (stage.setPointerCapture) {
-      try { stage.setPointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+      try { stage.setPointerCapture(event.pointerId); } catch { /* ignore */ }
     }
     event.preventDefault(); // stop text selection / native drag
   }

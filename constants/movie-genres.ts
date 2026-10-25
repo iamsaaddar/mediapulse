@@ -1,0 +1,31 @@
+/** Movie genre IDs published by TMDB's /genre/movie/list endpoint. */
+export const TMDB_MOVIE_GENRES = [
+	{ id: 28, name: "Action" },
+	{ id: 12, name: "Adventure" },
+	{ id: 16, name: "Animation" },
+	{ id: 35, name: "Comedy" },
+	{ id: 80, name: "Crime" },
+	{ id: 99, name: "Documentary" },
+	{ id: 18, name: "Drama" },
+	{ id: 10751, name: "Family" },
+	{ id: 14, name: "Fantasy" },
+	{ id: 36, name: "History" },
+	{ id: 27, name: "Horror" },
+	{ id: 10402, name: "Music" },
+	{ id: 9648, name: "Mystery" },
+	{ id: 10749, name: "Romance" },
+	{ id: 878, name: "Science Fiction" },
+	{ id: 10770, name: "TV Movie" },
+	{ id: 53, name: "Thriller" },
+	{ id: 10752, name: "War" },
+	{ id: 37, name: "Western" },
+] as const;
+
+export type TmdbMovieGenreId = (typeof TMDB_MOVIE_GENRES)[number]["id"];
+
+export function getMovieGenreNames(ids: number[]): string[] {
+	return ids.flatMap((id) => {
+		const genre = TMDB_MOVIE_GENRES.find((item) => item.id === id);
+		return genre ? [genre.name] : [];
+	});
+}

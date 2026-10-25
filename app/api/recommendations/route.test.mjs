@@ -100,6 +100,13 @@ function validRequest() {
 			likes: ["character-driven dramas"],
 			dislikes: ["shallow action films"],
 		},
+		preferences: {
+			anchorMovie: "Arrival",
+			vibes: [{ tag: "quietly contemplative", category: "emotion" }],
+			genreIds: [],
+			decades: [],
+			languages: [],
+		},
 		confidence: { overall: 0.82 },
 		personality: {
 			title: "The Quiet Reflector",
@@ -111,7 +118,7 @@ function validRequest() {
 function validResponse() {
 	return {
 		personality: validRequest().personality,
-		recommendations: Array.from({ length: 5 }, (_, index) => ({
+		recommendations: Array.from({ length: 7 }, (_, index) => ({
 			reason: `Reason ${index + 1}`,
 			movie: {
 				tmdbId: 100 + index,
