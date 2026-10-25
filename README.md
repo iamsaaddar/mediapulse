@@ -1,248 +1,240 @@
-# MediaPulse 🎬
+# MediaPulse
 
-### Discover your movie personality. Find films that match your taste.
+<p align="center">
+  <img src="assets/landing-page.png" alt="MediaPulse cinematic landing page" width="900" />
+</p>
 
-MediaPulse is an AI-powered movie discovery app that goes beyond genres and ratings to understand **why you enjoy the movies you love**.
+<p align="center">
+  <strong>Find the films that feel like you.</strong><br />
+  An AI-assisted movie discovery experience built around your taste, not another endless list of trending titles.
+</p>
 
-Through an adaptive AI interview, MediaPulse learns about your cinematic preferences, builds a personalized movie personality, and recommends seven films tailored to your taste. Google Gemini powers the interview and recommendation process, while TMDB verifies movie identities and provides movie metadata.
+<p align="center">
+  <a href="https://mediapulse-movie.vercel.app/">Live demo</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#run-locally">Run locally</a>
+</p>
 
-**TMDB discovers. Gemini matches. MediaPulse verifies.**
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" />
+  <img alt="React" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white" />
+  <img alt="Gemini" src="https://img.shields.io/badge/AI-Gemini-8e75ff" />
+  <img alt="TMDB" src="https://img.shields.io/badge/Movies-TMDB-01b4e4" />
+</p>
 
-[**Live Demo**](https://mediapulse-movie.vercel.app/) 
+MediaPulse starts with a movie you love, learns what you respond to through a short adaptive interview, and builds a set of **seven personalized recommendations**. The goal is not to ask an AI to invent a list of films and hope for the best. It is to use AI to interpret taste while keeping movie discovery, eligibility, and final metadata grounded in TMDB.
 
-> **Project status:** Core experience implemented. Final UI refinements, release testing, and deployment are in progress.
+> **The core design decision:** Gemini interprets taste and chooses among candidates. TMDB provides the catalog and canonical movie data. Application code enforces the rules between them.
 
----
+## The experience
 
-## 📸 Screenshots
+### From one favorite movie to a personal taste profile
 
-| Landing Page                              |
-| ----------------------------------------- |
-|                                           |
-| <img width="1119" height="597" alt="landing-page" src="https://github.com/user-attachments/assets/e21562b6-b040-4d39-9fae-dd9b7a7aa217" /> 
+<p align="center">
+  <img src="assets/anchor-page.png" alt="Entering a favorite movie to start the MediaPulse taste interview" width="820" />
+</p>
 
+Start with an anchor movie and, optionally, a note about what makes it work for you. Gemini proposes more specific vibe descriptors than broad genre labels alone can capture. Pick the descriptors that fit, add any hard preferences, then answer a few questions that adapt to your previous responses.
 
-| Adaptive Interview                      |
-| --------------------------------------- |
-|                                         |
-| <img width="1044" height="620" alt="adaptive-interview" src="https://github.com/user-attachments/assets/546f8d6a-5ef3-4e81-9cb1-be01f8d6dd81" /> 
+<p align="center">
+  <img src="assets/vibe-selection.png" alt="Choosing nuanced movie vibe descriptors" width="820" />
+</p>
 
-| Personalized Results                      |
-| ----------------------------------------- |
-|                                           |
+<p align="center">
+  <img src="assets/genre-selection.png" alt="Selecting movie genre preferences" width="820" />
+</p>
 
-| <img width="759" height="627" alt="personalized-results" src="https://github.com/user-attachments/assets/116a9bcd-6ccc-4614-8951-39f321ca91e8" />
+<p align="center">
+  <img src="assets/era-selection.png" alt="Selecting preferred release eras" width="820" />
+</p>
 
+<p align="center">
+  <img src="assets/language-selection.png" alt="Selecting original movie languages" width="820" />
+</p>
 
+### Recommendations you can actually explore
 
----
+<p align="center">
+  <img src="assets/3d-dvd-case-preview.gif" alt="Interactive MediaPulse DVD cases rotating in 3D" width="580" />
+</p>
 
-## ✨ Features
+The results page presents a taste/personality summary and seven film cases. The cases use CSS 3D transforms, with opening and closing behavior and pointer-driven rotation, alongside movie details and a personalized explanation of each match.
 
-- **Anchor Movie Vibes:** Enter a movie and choose from granular AI-generated cinematic textures and micro-genres.
-- **Personal Filters:** Select any TMDB movie genres, decades, and original languages as hard recommendation constraints. Leaving genres empty lets the selected vibes lead.
-- **Adaptive Micro-Interview:** Answer two to five targeted questions scoped to the selected vibes.
-- **Personalized Movie Personality:** A cinematic profile based on your preferences, emotional responses, narrative interests, and viewing habits.
-- **TMDB-First Recommendations:** TMDB discovers a broad, personalized candidate pool; Gemini selects seven films from that verified pool based on the user's taste.
-- **TMDB Movie Verification:** Candidate movies are checked against TMDB to obtain reliable identities and metadata.
-- **Structured AI Responses:** Runtime schema validation helps ensure that AI-generated data follows the application's expected format.
-- **Interactive Results:** Explore your movie personality, taste attributes, posters, ratings, and personalized recommendations.
-- **Responsive Interface:** A cinematic, dark-themed experience designed for different screen sizes.
-- **Error Handling:** Defined handling for invalid responses, failed requests, and uncertain movie matches.
+<p align="center">
+  <img src="assets/result.png" alt="MediaPulse results page with personalized movie recommendations" width="900" />
+</p>
 
----
+## How it works
 
-## 🧠 How It Works
+1. **Anchor movie:** the user enters a favorite film and can add context about why they like it.
+2. **Vibe discovery:** Gemini generates roughly 10–15 selectable descriptors for that movie.
+3. **Preference setup:** the user selects vibes and can optionally constrain genre, release decade, and original language.
+4. **Adaptive interview:** Gemini asks one question at a time based on the current answers. The flow takes at least two and at most five answers.
+5. **Candidate discovery:** the backend turns the taste profile into a structured discovery plan and searches TMDB within explicit limits.
+6. **Constrained selection:** Gemini chooses seven unique movie IDs only from the eligible candidate pool.
+7. **Verification and presentation:** TMDB supplies canonical details for the selected films, hard filters are checked again, and the results page renders the collection.
 
-MediaPulse combines AI-driven personalization with verified movie data and user-controlled constraints.
+## Architecture
 
-```text
-Anchor Movie → Gemini Vibe Extraction → Vibe / Genre / Decade / Language Selection
-  → 2–5 Question Micro-Interview → Gemini Discovery Plan
-  → Multi-Lane TMDB Candidate Discovery + Hard Filters
-  → Gemini Selects Seven From the Eligible Pool → TMDB Details
+```mermaid
+flowchart TD
+    A[Favorite movie] --> B[POST /api/vibes]
+    B --> C[Gemini vibe descriptors]
+    C --> D[User selects vibes and optional filters]
+    D --> E[POST /api/interview]
+    E --> F[Validated taste profile]
+    F --> G[POST /api/recommendations]
+    G --> H[Gemini discovery plan]
+    H --> I[Resolve keyword concepts in TMDB]
+    I --> J[Bounded multi-lane TMDB Discover]
+    J --> K[Deduplicate and enforce hard filters]
+    K --> L[Gemini selects 7 IDs from candidate pool]
+    L --> M[Fetch canonical TMDB details]
+    M --> N[Recheck filters and validate response]
+    N --> O[Interactive results UI]
 ```
 
-### 1. Choose a movie texture
+The main boundaries are intentional:
 
-Enter an anchor movie and optionally explain what you want MediaPulse to understand about why you like it. Gemini proposes 10–15 granular vibe keywords and micro-genres. Choose the textures that match what you want; the anchor title is context, not an assumption that you like every part of that film.
+- **Gemini is the interpreter, not the catalog.** It creates descriptors, asks adaptive questions, plans discovery, and ranks eligible candidates. It cannot introduce arbitrary film IDs into the final selection.
+- **TMDB is the source of movie records.** Keyword concepts are resolved through TMDB's keyword catalog, and the final selected films are fetched again for canonical metadata.
+- **Application code is the rule enforcer.** Input/output schemas, candidate-pool membership, deduplication, hard filters, and response validation are handled outside the model.
 
-### 2. Set hard filters
+## Engineering decisions
 
-Select any combination of TMDB's 19 movie genres, decades from the 1940s through the 2020s, and supported original languages. Selected genres, decades, and languages constrain the interview and recommendations; an empty selection for a filter means any genre, era, or language. The server checks final TMDB genre IDs, release year, and original-language metadata against selected filters.
+### AI recommendations with deterministic boundaries
 
-### 3. Take the micro-interview
+Free-form model output is useful for interpreting subjective taste, but it is a poor place to enforce catalog integrity. Gemini returns structured plans and selections; the application validates those outputs and limits final choices to known candidate IDs. Invalid final selections receive one retry, not an open-ended loop.
 
-Gemini asks one adaptive question at a time, staying within the selected vibe space and, when chosen, the selected genres. The application requires at least two answered questions and caps the interview at five.
+### Hard preferences stay hard
 
-### 4. Discover the candidate pool
+Selected genres use **AND semantics**: a movie must contain every selected genre ID, though it can contain additional genres. Each selected decade is treated as its own era. A selected language must match TMDB's `original_language`. Filters are reapplied after discovery and after canonical details are fetched. If the search cannot find seven eligible movies within its budget, the API returns an insufficient-results error instead of quietly weakening the user's preferences.
 
-Gemini turns the completed profile into a structured discovery plan. MediaPulse validates the plan, maps genre names to TMDB's genre catalog, resolves keyword concepts through TMDB, and runs bounded complementary Discover queries. The server merges candidates by TMDB ID and enforces every selected genre, decade, and language constraint. Popularity, vote counts, and ratings do not affect discovery ordering or selection.
+### Bounded search instead of unbounded API churn
 
-### 5. Select and present results
+Discovery has explicit resource limits:
 
-Gemini chooses exactly seven unique IDs from the eligible TMDB candidate pool and gives each a personalized explanation. MediaPulse validates the IDs, fetches authoritative TMDB details for the seven selections, and checks the hard filters again. Discovery is bounded; if the catalog cannot supply seven eligible candidates within those limits, the app gives an honest insufficient-results message instead of relaxing selected filters or padding the list.
+| Guardrail | Limit |
+| --- | ---: |
+| TMDB Discover requests | 24 maximum |
+| Pages per planned query | 6 maximum |
+| Validated discovery lanes | 8 maximum |
+| Candidate pool target | 100 movies |
+| Candidate pool ceiling | 160 movies |
+| Invalid final selection retries | 1 |
 
----
+Keyword concepts are accepted only when the resolved TMDB catalog label matches the planned label exactly, ignoring case. Candidate discovery is ordered by release date or original title rather than popularity or rating. Ratings and vote counts can appear as metadata, but do not decide eligibility, discovery order, or Gemini's final choices.
 
-## 🛠️ Tech Stack
+### Deliberate visual implementation
 
-| Technology                                                  | Purpose                                             |
-| ----------------------------------------------------------- | --------------------------------------------------- |
-| [Next.js](https://nextjs.org/)                              | Application framework and API routes                |
-| [React](https://react.dev/)                                 | User interface                                      |
-| [TypeScript](https://www.typescriptlang.org/)               | Type safety                                         |
-| [Tailwind CSS](https://tailwindcss.com/)                    | Styling and responsive layouts                      |
-| [Google Gemini](https://ai.google.dev/)                     | Adaptive interviewing and recommendation generation |
-| [Google Gen AI SDK](https://github.com/googleapis/js-genai) | Gemini integration                                  |
-| [TMDB](https://www.themoviedb.org/)                         | Movie search, verification, and metadata            |
-| [Zod](https://zod.dev/)                                     | Runtime schema validation                           |
-| [Node.js](https://nodejs.org/)                              | JavaScript runtime                                  |
+The DVD cases are built with CSS 3D transforms and pointer interactions rather than a WebGL scene or a separate 3D engine. That keeps the interaction within the existing web UI stack while still giving the results page a tactile, cinema-collection feel.
 
----
+### Validate at the boundaries
 
-## 🚀 Getting Started
+The API uses Zod to validate incoming JSON and structured Gemini output. Product routes return consistent `{ error: { code, message } }` errors, and provider credentials remain on the server rather than being exposed through `NEXT_PUBLIC_` variables.
 
-Follow these steps to run MediaPulse locally.
+## Tech stack
 
-### Prerequisites
+| Technology | What it does here |
+| --- | --- |
+| Next.js 16 / App Router | Application pages and server-side API routes |
+| React 19 | Interactive interview and recommendation UI |
+| TypeScript | Typed application contracts and data flow |
+| Tailwind CSS 4 + CSS Modules | Utilities, shared styling, and component-specific presentation |
+| Zod 4 | Runtime validation for API and model-output boundaries |
+| Google Gemini (`@google/genai`) | Vibe extraction, adaptive interviewing, discovery planning, and constrained selection |
+| TMDB API | Movie discovery, keyword catalog, canonical metadata, and artwork |
+| Node.js test runner | Automated tests for routes, schemas, providers, and recommendation orchestration |
 
-- [Node.js](https://nodejs.org/) and npm
-- [Git](https://git-scm.com/)
-- A Google Gemini API key
-- A TMDB API key
+## API overview
 
-### 1. Clone the repository
+| Method | Endpoint | Responsibility |
+| --- | --- | --- |
+| `GET` | `/api/health` | Basic service health response |
+| `POST` | `/api/vibes` | Validate the anchor movie and return vibe descriptors |
+| `POST` | `/api/interview` | Continue the adaptive interview or return the completed taste profile |
+| `POST` | `/api/recommendations` | Discover candidates, enforce filters, select and verify seven films |
+
+## Run locally
+
+### Requirements
+
+- Node.js and npm
+- A [Google Gemini API key](https://ai.google.dev/)
+- A [TMDB API key](https://developer.themoviedb.org/docs)
+
+### Setup
 
 ```bash
 git clone https://github.com/iamsaaddar/mediapulse.git
 cd mediapulse
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment variables
-
-Create a `.env.local` file in the root directory and add your API credentials:
+Create `.env.local` in the project root:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 TMDB_API_KEY=your_tmdb_api_key
 ```
 
-Get your credentials from:
-
-- **Gemini:** [Google AI Studio](https://aistudio.google.com/)
-- **TMDB:** [TMDB API Settings](https://www.themoviedb.org/settings/api)
-
-Replace the example values with your own credentials.
-
-**Security:** Keep API keys server-side. Never commit `.env.local` or expose secret credentials through client-side code. Do not prefix these keys with `NEXT_PUBLIC_`.
-
-### 4. Start the development server
+Then start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). `.env.example` contains placeholder values. Keep real credentials out of Git and never expose them through `NEXT_PUBLIC_` variables.
 
-### 5. Build for production
-
-```bash
-npm run build
-npm run start
-```
-
-The production server starts after a successful build.
-
----
-
-## ⚙️ Environment Variables
-
-| Variable         | Description                             | Required |
-| ---------------- | --------------------------------------- | -------- |
-| `GEMINI_API_KEY` | Authenticates requests to Google Gemini | Yes      |
-| `TMDB_API_KEY`   | Authenticates requests to TMDB          | Yes      |
-
-For deployment, configure these variables in your hosting provider's server-side environment settings.
-
-API availability, quotas, and usage terms depend on the respective providers.
-
----
-
-## 🧪 Testing
-
-Run the project's available quality checks:
+## Tests and checks
 
 ```bash
-npm run lint
-npm test
-npm run build
+npm test           # Node's built-in test runner
+npm run lint       # ESLint
+npx tsc --noEmit   # TypeScript check
+npm run build      # Production build
+npm run start      # Serve a successful production build
 ```
 
-Additional TypeScript checking:
+The automated tests cover API contracts, schemas, Gemini prompts/client behavior, TMDB discovery and verification, and recommendation orchestration. Passing automated checks does not replace browser QA across mobile and desktop sizes or checks involving live provider quotas and the hosted deployment.
 
-```bash
-npx tsc --noEmit
+## Project structure
+
+```text
+app/                  App Router pages and API routes
+components/
+  landing/            Landing page experience
+  interview/          Taste setup and adaptive interview
+  results/             Personality summary and interactive DVD cases
+  ui/                  Shared interface components
+services/
+  gemini/              Gemini client and prompt/workflow logic
+  tmdb/                TMDB client, search, and canonical details
+  recommendations/     Candidate planning, filtering, and orchestration
+schemas/               Runtime validation schemas
+types/                 TypeScript types
+lib/                   Environment, validation, API, and utility helpers
+constants/ config/     Supported options, limits, and provider settings
+assets/                README screenshots and DVD-case demonstration GIF
 ```
 
+The production DVD case implementation lives in `components/results/MovieCard.tsx` and `components/results/results.module.css`.
 
----
+## Current scope and limitations
 
-## 🗺️ Roadmap
+- The recommendation history is not persisted, so duplicate avoidance only applies within one response.
+- There are no user accounts, database, or persistent taste profiles yet.
+- A shareable personality card is not currently part of the results flow.
+- Results depend on Gemini and TMDB availability, quotas, and the candidate pool that satisfies the selected filters. MediaPulse does not relax those filters to force seven results.
+- The live demo link is provided for exploration; its presence in this README is not a guarantee of current uptime.
 
-- [x] Project setup and application foundation
-- [x] Landing page and adaptive interview interface
-- [x] Gemini-powered interview engine
-- [x] AI recommendation workflow
-- [x] TMDB movie verification
-- [x] Core results experience
-- [ ] Final UI refinements and responsive QA
-- [ ] Shareable movie personality card
-- [ ] Final attribution and release checks
-- [ ] Production deployment
-- [ ] V1 release
+## Credits and attribution
 
-
----
-
-## 🔮 Future Improvements
-
-Potential directions for future versions include:
-
-- Shareable cinematic personality profiles
-- Saved recommendations and persistent taste profiles
-- Tracking how movie preferences evolve over time
-- More advanced recommendation evaluation
-
-These are future possibilities, not commitments for the initial release.
-
----
-
-## 🙌 Acknowledgements
-
-- [Google Gemini](https://ai.google.dev/) for AI-powered interviewing and recommendation generation.
-- [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie discovery and metadata.
+- [Google Gemini](https://ai.google.dev/) powers the taste interpretation and adaptive AI steps.
+- [The Movie Database (TMDB)](https://www.themoviedb.org/) provides movie discovery, metadata, and artwork.
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. Movie data and artwork are subject to TMDB's applicable terms and attribution requirements.
 
----
-
-## 👨‍💻 About the Project
-
-MediaPulse is an independent portfolio project exploring the combination of generative AI, full-stack development, and personalized movie discovery.
-
-The project demonstrates how an AI-powered application can go beyond generating text by combining structured outputs, runtime validation, external data verification, error handling, and a dedicated user experience.
-
-**Developer:** [IAMSAADDAR](https://github.com/iamsaaddar)
-
-
-
----
-
-
+**Developer:** [IAMSAADDAR](https://github.com/iamsaaddar) · [Live demo](https://mediapulse-movie.vercel.app/)

@@ -1,6 +1,6 @@
 # MediaPulse — Updated V1 Master Roadmap
 
-> **Status notice (2026-10-20):** The phase sequencing and “immediate next steps” below are historical planning material. The project owner reports the project complete. For current repository context, read [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md); do not treat old phase/task assignments as active instructions.
+> **Status notice (2026-10-25):** This is a historical planning roadmap and contains superseded five-recommendation assumptions in its earlier phase write-ups. The current implementation returns seven recommendations using bounded TMDB-first candidate discovery. For current behavior, routes, limits, verification, and the latest checks, read [MediaPulse — Current Project Reference.md](MediaPulse%20%E2%80%94%20Current%20Project%20Reference.md), [the README](../README.md), and [the backend process](../docs/backend-process-roadmap.md). Do not treat historical phase assignments or task prompts below as active instructions.
 
 ## Current Project Direction
 
@@ -43,15 +43,9 @@ V1 remains:
 | Phase 11 — Testing & QA | 🟡 In progress |
 | Phase 12 — Deployment & Portfolio | ⏳ Not started |
 
-### Current position
+### Current position (reconciled against repository, 2026-10-25)
 
-**PHASE 9 → TASK 9.1 — Design the standalone shareable profile card**
-
-Phases 4–8's core implementation is complete. The landing-to-results user journey
-and live recommendation retry path have been browser-verified. Phase 8 still has
-an attribution/linking review before release. Phase 11 remains in progress: the
-automated suite, type-check, lint, production build, and diff checks pass, but
-full cross-device and release QA is still outstanding.
+The anchor-vibe flow, adaptive interview, recommendation pipeline, personality result, and interactive DVD cases are present in the codebase. A standalone shareable profile card is not present in the current user journey. The latest audit passed all 107 Node tests, ESLint, TypeScript checking, and the production build; local landing, quiz, and health routes returned HTTP 200. Full cross-device and release QA were not run during this audit. Historical phase notes below document intent and implementation history; use the current reference and backend process document for actual runtime behavior.
 
 > Development note: Phases 5 and 6 were implemented ahead of Phase 4. Phase 4 is
 > now complete; this execution-order difference did not change the dependency
@@ -1045,7 +1039,7 @@ Gemini should:
 - avoid generic recommendations
 - avoid popularity-only recommendations
 - recommend real feature films
-- return exactly five candidates
+- return exactly seven candidates in the current implementation
 
 ### Task 7.4 — Candidate normalization
 
@@ -1301,9 +1295,9 @@ Movie Personality
 
 **Status: COMPLETE.** The completed interview's actual personality, taste profile,
 and validated recommendation response feed the results experience. The client and
-response schema require exactly five recommendations with distinct TMDB IDs;
+response schema require exactly seven recommendations with distinct TMDB IDs;
 the orchestrator returns an error rather than partial success when it cannot
-verify five movies. Optional poster, overview, and release-date data have safe
+verify seven movies. Optional poster, overview, and release-date data have safe
 display fallbacks.
 
 Verified in the browser against the live Gemini/TMDB provider path:
@@ -1539,7 +1533,7 @@ Verify that the resulting taste interpretation and recommendations meaningfully 
 
 Verify:
 
-- exactly five results
+- exactly seven results
 - no duplicate movies
 - candidate verification
 - wrong-title rejection

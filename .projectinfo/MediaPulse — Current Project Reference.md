@@ -1,7 +1,7 @@
 # MediaPulse — Current Project Reference
 
-**Reference date:** 2026-10-20  
-**Project state:** The anchor-vibe interview and TMDB-first candidate discovery flow is implemented in the repository.
+**Reference date:** 2026-10-25
+**Project state:** The current anchor-vibe interview, bounded TMDB-first discovery, seven-film selection, and interactive DVD-case results flow is implemented. This document reflects a source inspection, a local development-server startup, an HTTP 200 health check, and passing automated tests, lint, TypeScript checks, and production build on 2026-10-25.
 **Authority:** This file supersedes old “current task,” phase, and next-step instructions in the historical handoff and roadmap documents in this folder.
 
 ## Product
@@ -16,7 +16,7 @@ V1 is movie-only, has no login, database, user accounts, or social features, and
 2. `/quiz` begins with an anchor title and an optional note about what the user values in it; `/api/vibes` returns 10–15 Gemini-generated keywords for user selection, followed by optional TMDB genre filters, decade, and language filters.
 3. `/api/interview` asks adaptive questions within selected vibes and, when chosen, selected genres. The application requires at least two answers and allows at most five. Completion provides a profile, confidence, and personality.
 4. `/api/recommendations` receives the profile and preferences, validates a Gemini discovery plan, translates it to bounded TMDB Discover queries, enforces genre/decade/original-language filters, and has Gemini select exactly seven distinct verified movies from the candidate pool.
-5. `/api/health` remains a small service health response. The results screen presents the personality and seven verified movie cards and supports recommendation retry or retaking the experience.
+5. `/api/health` returns `{ status: "ok", service: "mediapulse" }`. The results experience presents the personality and seven verified movie DVD cases. Cases can be opened/closed and dragged to rotate; the open case includes movie details, a personalized match reason, and a Vidlink link. Recommendation retry and retaking the quiz are supported.
 
 Interview state and results are held in browser memory; there is no persistence layer.
 
@@ -25,9 +25,9 @@ Interview state and results are held in browser memory; there is no persistence 
 - `app/`: App Router pages, global styles, metadata, and API routes.
 - `components/landing/`: landing hero, how-it-works section, and CTA.
 - `components/interview/`: anchor/vibe/filter setup, theater interview shell, typed question controls, validation feedback, progress, and completion wrapper.
-- `components/results/`: personality reveal, movie artwork fallback, and interactive movie cases.
+- `components/results/`: personality reveal, movie artwork fallback, interactive CSS 3D movie cases, and recommendation loading/error states. Mobile results use the same case component and should receive dedicated browser QA.
 - `components/ui/`: shared buttons, containers, status/error UI, progress, header, and spinner.
-- `services/gemini/`: server-only Gemini client, vibe extraction, adaptive interview policy/service, and discovery-plan/final-selection requests.
+- `services/gemini/`: server-only Gemini client, vibe extraction, adaptive interview policy/service, and discovery-plan/final-selection requests. The interview prompt source is `.projectinfo/Gemini Interview System Prompt.txt`; `services/gemini/interview-prompt.ts` is its runtime copy, with a test checking synchronization.
 - `services/tmdb/`: TMDB request client, keyword catalog resolution, Discover queries, and canonical movie details.
 - `services/recommendations/`: taste-to-TMDB query translation, bounded multi-lane discovery, ID de-duplication, hard filtering, Gemini selection validation, and final metadata verification.
 - `schemas/`: Zod runtime contracts; `types/` infers TypeScript types from those contracts.
@@ -47,7 +47,7 @@ Interview state and results are held in browser memory; there is no persistence 
 
 ## Stack and commands
 
-The checked-in package manifest specifies Next.js `16.3.5`, React `19.2.8`, TypeScript 5, Tailwind CSS 4, Zod 4, and `@google/genai` 2.24.x. `npm run dev`, `npm run build`, `npm run start`, and `npm run lint` are defined. The repository also contains Node's built-in test suites, runnable with `node --test`.
+The checked-in package manifest specifies Next.js `16.3.5`, React `19.2.8`, TypeScript 5, Tailwind CSS 4, Zod 4, and `@google/genai` 2.24.x. `npm run dev`, `npm run build`, `npm run start`, and `npm run lint` are defined. `npm test` runs Node's built-in test suites. On 2026-10-25, all 107 tests passed, `npm run lint` passed, `npx tsc --noEmit` passed, `npm run build` passed, and the local landing, quiz, and health routes returned HTTP 200. Full visual cross-device QA was not part of that verification run.
 
 Required server environment variables are `GEMINI_API_KEY` and `TMDB_API_KEY`. `.env.example` contains blank placeholders. A local `.env.local` exists in this checkout; its contents were not read or copied into this reference.
 
@@ -56,8 +56,8 @@ Required server environment variables are `GEMINI_API_KEY` and `TMDB_API_KEY`. `
 - `MediaPulse — Updated V1 Master Roadmap.md`, `MediaPulse — Complete Local Development Handoff.md`, and `MediaPulse — Local Chat Handoff Prompt.md` include historical phase plans. Any instruction in them that says to resume Phase 3 / Task 3.1 or describes Phase 9 as the immediate next task is obsolete; use this current reference and the user's latest direction.
 - The visual direction, color, typography, and layout files remain useful as design rationale/specification. Their “Phase 3” status labels describe the original planning sequence rather than current unfinished implementation work.
 - `Gemini Interview System Prompt.txt` is operational prompt guidance and must remain synchronized with the runtime copy in `services/gemini/interview-prompt.ts` if either is changed.
-- The root README and this reference are maintained separately; both should describe the same current recommendation flow.
+- The root README describes setup and the product at a glance; `docs/backend-process-roadmap.md` records the detailed runtime sequence. Keep all three aligned with the current implementation.
 
 ## Scope and evidence
 
-This reference describes the implemented TMDB-first discovery flow. Automated test, type, lint, and build results for the current change are recorded in the implementation handoff; live provider performance and hosted demo availability have not been evaluated here.
+This reference describes the implemented TMDB-first discovery flow. Local route checks confirm the app responds; they do not test live Gemini/TMDB calls or hosted demo availability. Full mobile/desktop visual QA and release readiness remain separate checks.

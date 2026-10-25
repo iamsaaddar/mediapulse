@@ -399,9 +399,11 @@
 
 @media (min-width: 64rem) {
   .movie-library__shelf {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1.5rem;
-  } .dvd-display { --w: min(16vw, 36vh, 300px); }
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 2.5vw, 2.5rem);
+    row-gap: clamp(3rem, 4vw, 4rem);
+  }
+  .dvd-display { --w: min(13vw, 30vh, 240px); }
 }
 
 @media (max-width: 24rem) {
@@ -1081,7 +1083,8 @@
   display: block;
   width: 100%;
   min-width: 0;
-  padding: 0;
+  /* The rotated 3D case extends beyond its stage; reserve room so grid rows cannot overlap it. */
+  padding: 0 0 calc(var(--w) * 0.38);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1214,7 +1217,7 @@
 .results-page__backdrop { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: brightness(0.36) saturate(0.8); }
 .results-page::before { position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, rgb(16 10 8 / 0.65), #100a08 42rem), linear-gradient(90deg, rgb(16 10 8 / 0.5), rgb(16 10 8 / 0.22)); content: ""; pointer-events: none; }
 .movie-library__heading h2 { color: #fff1df; }
-.movie-library__shelf { gap: clamp(1rem, 2vw, 1.6rem); }
+.movie-library__shelf { column-gap: clamp(1.25rem, 2.5vw, 2rem); row-gap: clamp(2.75rem, 4vw, 3.5rem); }
 .personality-display { border-top-color: rgb(224 193 150 / 0.26); }
 
 @media (max-width: 48rem) {
@@ -1223,7 +1226,7 @@
   .results-page::before { background: linear-gradient(180deg, rgb(16 10 8 / 0.7), #100a08 27rem), linear-gradient(90deg, rgb(16 10 8 / 0.35), rgb(16 10 8 / 0.18)); }
   .movie-library__heading { flex-direction: column; align-items: center; text-align: center; }
   .movie-library__count { justify-items: center; }
-  .movie-library__shelf { justify-items: center; gap: 0.9rem 0.45rem; }
+  .movie-library__shelf { justify-items: center; column-gap: 1rem; row-gap: 2.75rem; }
   .dvd-display { min-width: 0; max-width: 100%; margin-inline: auto; }
   .personality-display { text-align: center; }
   .results-experience__reset { display: flex; justify-content: center; text-align: center; }

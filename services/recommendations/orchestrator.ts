@@ -74,10 +74,38 @@ export async function gatherEligibleCandidates(request: RecommendationRequest) {
 			const result = await discoverMovies({ ...lane.query, page: lane.page });
 			requests += 1;
 			lane.lastPage = Math.min(lane.lastPage, result.totalPages || lane.page);
+			const poolSizeBefore = pool.size;
+			let passedHardFilters = 0;
+			let newUniqueCandidates = 0;
+			let duplicateCandidates = 0;
+			let poolCapacityDrops = 0;
 			for (const movie of result.items) {
 				if (!matchesRequestHardFilters(movie, request)) continue;
+				passedHardFilters += 1;
+				if (pool.has(movie.tmdbId)) duplicateCandidates += 1;
+			else if (pool.size >= MAX_DISCOVERY_POOL_SIZE) {
+					poolCapacityDrops += 1;
+					continue;
+				} else newUniqueCandidates += 1;
 				mergeCandidate(pool, movie, lane.source);
 			}
+			logger.info("TMDB discovery query completed", {
+				category: "DISCOVERY_QUERY",
+				requestNumber: requests,
+				page: lane.page,
+				strategies: lane.source.strategies,
+				criteria: lane.source.criteria,
+				keywordConcepts: lane.source.keywordConcepts,
+				filters: { genreIds: lane.query.genreIds, keywordIds: lane.query.keywordIds, decades: lane.query.decades, languages: lane.query.languages, sortBy: lane.query.sortBy },
+				resultsReturned: result.items.length,
+				passedHardFilters,
+				newUniqueCandidates,
+				duplicateCandidates,
+				poolCapacityDrops,
+				poolSizeBefore,
+				poolSizeAfter: pool.size,
+				totalPages: result.totalPages,
+			});
 			lane.page += 1;
 		} catch (error) {
 			requests += 1;
