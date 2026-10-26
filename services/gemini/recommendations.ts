@@ -78,6 +78,8 @@ const candidateSummary = (movie: DiscoveredMovie, provenance?: CandidateProvenan
 	overview: movie.overview.slice(0, 900),
 	genres: getMovieGenreNames(movie.genreIds),
 	originalLanguage: movie.originalLanguage,
+	discoveryStrategies: provenance?.strategies ?? [],
+	discoveryCriteria: provenance?.criteria ?? [],
 	matchedTmdbKeywords: provenance?.keywordConcepts ?? [],
 });
 

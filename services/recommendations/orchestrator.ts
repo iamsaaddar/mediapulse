@@ -7,6 +7,8 @@ import { generateDiscoveryPlan, selectFinalRecommendations } from "@/services/ge
 import { chooseKeywordMatch, searchTmdbKeywords, type ResolvedKeyword } from "@/services/tmdb/keywords";
 import { discoverMovies } from "@/services/tmdb/discover";
 import { getMovieById } from "@/services/tmdb/movie";
+import { searchMovies } from "@/services/tmdb/search";
+import { getSimilarMovies } from "@/services/tmdb/similar";
 import type { DiscoveredMovie, VerifiedMovie } from "@/types/movie";
 import type { RecommendationRequest, RecommendationResponse } from "@/types/recommendation";
 import { collectKeywordConcepts, createDiscoveryQueries, matchesRequestHardFilters, type CandidateProvenance } from "./discovery-plan";
@@ -28,6 +30,19 @@ export function mergeCandidate(
 		return;
 	}
 	if (pool.size < MAX_DISCOVERY_POOL_SIZE) pool.set(movie.tmdbId, { movie, provenance: { strategies: [...source.strategies], criteria: [...source.criteria], keywordConcepts: [...source.keywordConcepts] } });
+}
+
+function discoveryQueryKey(query: { genreIds: number[]; keywordIds: number[]; decades: number[]; languages: string[] }): string {
+	return JSON.stringify({
+		genreIds: [...query.genreIds].sort((a, b) => a - b),
+		keywordIds: [...query.keywordIds].sort((a, b) => a - b),
+		decades: [...query.decades].sort((a, b) => a - b),
+		languages: [...query.languages].sort(),
+	});
+}
+
+function normalizeMovieTitle(value: string): string {
+	return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 }
 
 function toVerifiedMovie(details: Awaited<ReturnType<typeof getMovieById>>): VerifiedMovie {
@@ -63,7 +78,49 @@ export async function gatherEligibleCandidates(request: RecommendationRequest) {
 
 	const pool = createCandidatePool();
 	const active = planned.map(({ query, source }) => ({ query, source, page: 1, lastPage: MAX_DISCOVERY_PAGES }));
+	const scheduledQueryKeys = new Set(planned.map(({ query }) => discoveryQueryKey(query)));
 	let requests = 0;
+	// The anchor is an additional candidate source, not a replacement for the
+	// taste-profile searches. Reserve its API calls from the same request budget.
+	try {
+		requests += 1;
+		const anchorQuery = normalizeMovieTitle(request.preferences.anchorMovie);
+		const anchorMatches = await searchMovies(request.preferences.anchorMovie);
+		const anchor = anchorMatches.find((movie) => normalizeMovieTitle(movie.title) === anchorQuery || normalizeMovieTitle(movie.originalTitle) === anchorQuery);
+		if (anchor) {
+			requests += 1;
+			const similar = await getSimilarMovies(anchor.id);
+			let eligible = 0;
+			let added = 0;
+			for (const movie of similar.items) {
+				if (!matchesRequestHardFilters(movie, request)) continue;
+				eligible += 1;
+				const existed = pool.has(movie.tmdbId);
+				mergeCandidate(pool, movie, {
+					strategies: ["anchor_similarity"],
+					criteria: [`similar to anchor: ${anchor.title}`],
+					keywordConcepts: [],
+				});
+				if (!existed && pool.has(movie.tmdbId)) added += 1;
+			}
+			logger.info("Anchor-movie similarity candidates processed", {
+				category: "ANCHOR_SIMILARITY",
+				anchorTmdbId: anchor.id,
+				anchorTitle: anchor.title,
+				resultsReturned: similar.items.length,
+				passedHardFilters: eligible,
+				newUniqueCandidates: added,
+				poolSizeAfter: pool.size,
+			});
+		} else {
+			logger.info("Anchor movie could not be matched exactly in TMDB; continuing with taste-profile discovery", { category: "ANCHOR_SIMILARITY_SKIPPED" });
+		}
+	} catch (error) {
+		logger.warn("Anchor similarity discovery failed; continuing with taste-profile discovery", {
+			category: "ANCHOR_SIMILARITY_FAILED",
+			code: error instanceof AppError ? error.code : "TMDB_SIMILARITY",
+		});
+	}
 	let turn = 0;
 	while (requests < MAX_DISCOVERY_REQUESTS && pool.size < TARGET_DISCOVERY_POOL_SIZE && pool.size < MAX_DISCOVERY_POOL_SIZE && active.length) {
 		const index = turn % active.length;
@@ -83,7 +140,7 @@ export async function gatherEligibleCandidates(request: RecommendationRequest) {
 				if (!matchesRequestHardFilters(movie, request)) continue;
 				passedHardFilters += 1;
 				if (pool.has(movie.tmdbId)) duplicateCandidates += 1;
-			else if (pool.size >= MAX_DISCOVERY_POOL_SIZE) {
+				else if (pool.size >= MAX_DISCOVERY_POOL_SIZE) {
 					poolCapacityDrops += 1;
 					continue;
 				} else newUniqueCandidates += 1;
@@ -106,6 +163,29 @@ export async function gatherEligibleCandidates(request: RecommendationRequest) {
 				poolSizeAfter: pool.size,
 				totalPages: result.totalPages,
 			});
+			if (lane.query.keywordIds.length && passedHardFilters === 0) {
+				const fallbackQuery = { ...lane.query, keywordIds: [], page: 1 };
+				const fallbackKey = discoveryQueryKey(fallbackQuery);
+				if (!scheduledQueryKeys.has(fallbackKey) && requests < MAX_DISCOVERY_REQUESTS) {
+					scheduledQueryKeys.add(fallbackKey);
+					const fallbackKeywordNames = new Set(lane.source.keywordConcepts.map((concept) => concept.toLocaleLowerCase()));
+					active.push({
+						query: fallbackQuery,
+						source: {
+							strategies: [...lane.source.strategies],
+							criteria: lane.source.criteria.filter((criterion) => !fallbackKeywordNames.has(criterion.toLocaleLowerCase())),
+							keywordConcepts: [],
+						},
+						page: 1,
+						lastPage: MAX_DISCOVERY_PAGES,
+					});
+					logger.info("Queued broader TMDB discovery fallback after a zero-yield keyword query", {
+						category: "DISCOVERY_FALLBACK_QUEUED",
+						keywordIds: lane.query.keywordIds,
+						preservedFilters: { genreIds: fallbackQuery.genreIds, decades: fallbackQuery.decades, languages: fallbackQuery.languages },
+					});
+				}
+			}
 			lane.page += 1;
 		} catch (error) {
 			requests += 1;

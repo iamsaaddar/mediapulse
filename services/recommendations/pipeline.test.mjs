@@ -17,6 +17,8 @@ function loader(overrides = {}) {
 		const mod = { exports: {} }; cache.set(absolute, mod);
 		new Function("require", "module", "exports", js)((name) => {
 			if (Object.hasOwn(overrides, name)) return overrides[name];
+			if (name === "@/services/tmdb/search") return { searchMovies: async () => [] };
+			if (name === "@/services/tmdb/similar") return { getSimilarMovies: async () => ({ items: [], totalPages: 0 }) };
 			if (name === "server-only") return {};
 			if (name === "zod") return { z };
 			if (name.startsWith("@/")) return load(`${name.slice(2)}.ts`);
@@ -193,6 +195,55 @@ test("TMDB keyword resolver accepts exact catalog labels and safely skips missin
 	assert.equal(keywords.chooseKeywordMatch("dream", [{ id: 1, name: "Dreamlike", query: "dream" }]), null);
 });
 
+test("TMDB keyword searches are cached case-insensitively", async () => {
+	let calls = 0;
+	const keywords = loader({ "./client": { fetchTmdb: async (path, params) => {
+		calls += 1;
+		assert.equal(path, "/search/keyword");
+		assert.equal(params.page, 1);
+		return { results: [{ id: 420, name: "Dreamlike" }] };
+	} } })("services/tmdb/keywords.ts");
+	const first = await keywords.searchTmdbKeywords("Dreamlike");
+	const second = await keywords.searchTmdbKeywords(" dreamlike ");
+	assert.equal(calls, 1);
+	assert.deepEqual(first, second);
+	assert.equal(keywords.chooseKeywordMatch("dreamlike", second).id, 420);
+});
+
+test("zero-yield keyword discovery retries without the optional keyword and preserves hard filters", async () => {
+	const movies = Array.from({ length: 7 }, (_, index) => ({
+		tmdbId: index + 1, title: `Film ${index + 1}`, originalTitle: `Film ${index + 1}`,
+		releaseDate: "1994-04-12", overview: "A reflective French drama.", posterPath: null,
+		backdropPath: null, genreIds: [18], originalLanguage: "fr",
+	}));
+	const calls = [];
+	const keywordPlan = { lanes: [{ strategy: "core_taste", genreNames: ["Drama"], keywordConcepts: ["dreamlike"], languageCodes: ["en"], decades: [2000] }] };
+	const orchestrator = loader({
+		"@/services/gemini/recommendations": { generateDiscoveryPlan: async () => keywordPlan, selectFinalRecommendations: async () => [] },
+		"@/services/tmdb/keywords": {
+			chooseKeywordMatch: (query, results) => results.find((item) => item.name.toLocaleLowerCase() === query.toLocaleLowerCase()) ?? null,
+			searchTmdbKeywords: async (query) => [{ id: 420, name: query, query }],
+		},
+		"@/services/tmdb/discover": { discoverMovies: async (query) => {
+			calls.push(query);
+			return query.keywordIds.length ? { items: [], totalPages: 0 } : { items: movies, totalPages: 1 };
+		} },
+		"@/services/tmdb/movie": { getMovieById: async () => ({}) },
+		"@/lib/logger": { logger: { info() {}, warn() {}, error() {} } },
+	})("services/recommendations/orchestrator.ts");
+
+	const result = await orchestrator.gatherEligibleCandidates(request);
+	assert.equal(result.requests, 3);
+	assert.equal(result.pool.length, 7);
+	assert.deepEqual(calls.map(({ keywordIds }) => keywordIds), [[420], []]);
+	for (const query of calls) {
+		assert.deepEqual(query.genreIds, [18]);
+		assert.deepEqual(query.decades, [1990]);
+		assert.deepEqual(query.languages, ["fr"]);
+	}
+	assert.deepEqual(result.provenance.get(1).keywordConcepts, []);
+});
+
 test("Gemini final selection accepts seven pool IDs and retries, then rejects IDs outside the pool", async () => {
 	const pool = Array.from({ length: 9 }, (_, index) => ({ tmdbId: index + 1, title: `Film ${index + 1}`, originalTitle: `Film ${index + 1}`, releaseDate: "1994-01-01", overview: "Dreamlike reflective drama.", posterPath: null, backdropPath: null, genreIds: [18], originalLanguage: "fr" }));
 	const valid = { selections: Array.from({ length: 7 }, (_, index) => ({ tmdbId: index + 1, reason: `Fits your preference ${index + 1}` })) };
@@ -231,6 +282,26 @@ test("within-request duplicate candidates merge their discovery provenance", () 
 	orchestrator.mergeCandidate(pool, movie, { strategies: ["era_exploration"], criteria: ["Drama", "1990"], keywordConcepts: [] });
 	assert.equal(pool.size, 1);
 	assert.deepEqual(pool.get(1).provenance, { strategies: ["core_taste", "era_exploration"], criteria: ["Drama", "dreamlike", "1990"], keywordConcepts: ["Dreamlike"] });
+});
+
+test("anchor-similarity movies join the candidate pool only when they pass all hard filters", async () => {
+	const eligible = { tmdbId: 91, title: "Related French Drama", originalTitle: "Related French Drama", releaseDate: "1994-03-01", overview: "A reflective story.", posterPath: null, backdropPath: null, genreIds: [18], originalLanguage: "fr" };
+	const wrongLanguage = { ...eligible, tmdbId: 92, title: "Related English Drama", originalLanguage: "en" };
+	const planWithOneQuery = { lanes: [{ strategy: "core_taste", genreNames: ["Drama"], keywordConcepts: [], languageCodes: [], decades: [] }] };
+	const orchestrator = loader({
+		"@/services/gemini/recommendations": { generateDiscoveryPlan: async () => planWithOneQuery, selectFinalRecommendations: async () => [] },
+		"@/services/tmdb/keywords": { chooseKeywordMatch() { return null; }, searchTmdbKeywords: async () => [] },
+		"@/services/tmdb/search": { searchMovies: async (title) => title === "Arrival" ? [{ id: 12, title: "Arrival", originalTitle: "Arrival", releaseDate: "2016-11-11" }] : [] },
+		"@/services/tmdb/similar": { getSimilarMovies: async (id) => { assert.equal(id, 12); return { items: [eligible, wrongLanguage], totalPages: 1 }; } },
+		"@/services/tmdb/discover": { discoverMovies: async () => ({ items: [], totalPages: 0 }) },
+		"@/services/tmdb/movie": { getMovieById: async () => ({}) },
+		"@/lib/logger": { logger: { info() {}, warn() {}, error() {} } },
+	})("services/recommendations/orchestrator.ts");
+	const result = await orchestrator.gatherEligibleCandidates(request);
+	assert.ok(result.pool.some((movie) => movie.tmdbId === 91));
+	assert.ok(!result.pool.some((movie) => movie.tmdbId === 92));
+	assert.deepEqual(result.provenance.get(91).strategies, ["anchor_similarity"]);
+	assert.deepEqual(result.provenance.get(91).criteria, ["similar to anchor: Arrival"]);
 });
 
 test("candidate pool cap remains enforced without imposing genre or language quotas", () => {
@@ -313,7 +384,7 @@ test("candidate expansion pages complementary lanes within the shared request ca
 	})("services/recommendations/orchestrator.ts");
 	const result = await orchestrator.gatherEligibleCandidates(request);
 	assert.equal(result.requests, 24);
-	assert.equal(result.pool.length, 24);
+	assert.equal(result.pool.length, 23);
 	assert.ok(result.provenance.size === result.pool.length);
 	assert.ok(pagesByQuery.size > 1);
 	assert.ok([...pagesByQuery.values()].every((page) => page <= 6));
